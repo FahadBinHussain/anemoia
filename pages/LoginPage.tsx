@@ -15,14 +15,29 @@ const GoogleIcon: React.FC = () => (
   </svg>
 );
 
+const UserIcon: React.FC<{className?: string}> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-5 h-5"}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+  </svg>
+);
+
 
 const LoginPage: React.FC = () => {
-  const { login, isLoading, currentUser } = useAuth();
+  const { login, logout, demoLogin, isLoading, isGapiLoaded, currentUser } = useAuth();
 
   if (currentUser) {
       // Already handled by Navigate in App.tsx, but good for direct access scenario
       return <p className="text-center text-slate-300">Redirecting...</p>;
   }
+
+  const googleButtonDisabled = isLoading || !isGapiLoaded;
+  let googleButtonText = 'Sign In with Google';
+  if (!isGapiLoaded && isLoading) {
+    googleButtonText = 'Initializing Sign-In...';
+  } else if (isLoading && isGapiLoaded) { // isLoading specifically for Google Sign-In process
+    googleButtonText = 'Connecting to Google...';
+  }
+
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-250px)] py-12">
@@ -35,16 +50,36 @@ const LoginPage: React.FC = () => {
           Access the digital frontier. Sign in to continue.
         </p>
         
-        <Button 
-          onClick={login} 
-          disabled={isLoading}
-          variant="outline"
-          size="lg"
-          className="w-full text-slate-200 border-slate-600 hover:bg-slate-700 focus:ring-slate-500"
-          leftIcon={isLoading ? <Spinner size="sm" color="text-slate-300" /> : <GoogleIcon />}
-        >
-          {isLoading ? 'Connecting to the Grid...' : 'Sign In with Google'}
-        </Button>
+        <div className="space-y-4">
+            <Button 
+              onClick={login} 
+              disabled={googleButtonDisabled}
+              variant="outline"
+              size="lg"
+              className="w-full text-slate-200 border-slate-600 hover:bg-slate-700 focus:ring-slate-500"
+              leftIcon={isLoading && isGapiLoaded ? <Spinner size="sm" color="text-slate-300" /> : <GoogleIcon />}
+              aria-label="Sign in with Google"
+            >
+              {googleButtonText}
+            </Button>
+
+            <Button
+                onClick={demoLogin}
+                variant="outline"
+                size="lg"
+                className="w-full text-slate-200 border-cyan-600 hover:bg-cyan-700/50 hover:text-cyan-300 focus:ring-cyan-500 text-cyan-400"
+                leftIcon={<UserIcon className="text-cyan-400"/>}
+                aria-label="Sign in as Demo User"
+                // Demo login is instant, so doesn't need its own loading state usually
+                // disabled={isLoading} // Optionally disable if main isLoading is true
+            >
+                Sign In as Demo User
+            </Button>
+        </div>
+
+        {!isGapiLoaded && !isLoading && <p className="text-xs text-red-400 mt-4 text-center">Google Sign-In service failed to load. Please try refreshing the page. Demo sign in is available.</p>}
+         {isGapiLoaded && isLoading && !currentUser && <p className="text-xs text-slate-400 mt-4 text-center">Attempting Google Sign-In...</p>}
+
 
         <p className="text-xs text-slate-500 mt-8 text-center">
           By signing in, you agree to our <a href="#" className="text-cyan-400 hover:underline">Terms of Service</a> and <a href="#" className="text-cyan-400 hover:underline">Privacy Policy</a> (conceptual).

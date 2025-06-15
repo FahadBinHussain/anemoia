@@ -29,21 +29,12 @@ const Button: React.FC<ButtonProps> = ({
   const variantStyles = {
     primary: "bg-cyan-500 text-slate-900 hover:bg-cyan-400 focus:ring-cyan-500 shadow-md shadow-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/50",
     secondary: "bg-pink-500 text-white hover:bg-pink-600 focus:ring-pink-500 shadow-md shadow-pink-500/30 hover:shadow-lg hover:shadow-pink-500/50",
-    outline: "border border-current text-current hover:bg-current hover:text-slate-900 focus:ring-current", // Color set by text-color like text-cyan-400
+    outline: "border border-current text-current hover:bg-current hover:text-slate-950 focus:ring-current", // Relies on className for specific colors like text-cyan-400, border-cyan-400, hover:bg-cyan-500 etc.
     ghost: "text-slate-300 hover:bg-slate-700 hover:text-white focus:ring-slate-500",
     danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-md shadow-red-600/30 hover:shadow-lg hover:shadow-red-600/50",
   };
   
-  // Special handling for outline to derive color from text
-  let finalVariantStyle = variantStyles[variant];
-  if (variant === 'outline') {
-    // className might contain text-cyan-400 etc. We want hover:bg-cyan-400
-    // This is a simplification; for robust solution, pass color prop or use CSS variables
-    // For now, it expects className to define the text color e.g. "text-cyan-400 border-cyan-400"
-    // And hover effect is generic
-     finalVariantStyle = `border ${className.includes('text-pink') ? 'border-pink-500 text-pink-500 hover:bg-pink-500' : 'border-cyan-500 text-cyan-400 hover:bg-cyan-500'} hover:text-slate-900 focus:ring-current`;
-  }
-
+  const finalVariantStyle = variantStyles[variant];
 
   return (
     <button

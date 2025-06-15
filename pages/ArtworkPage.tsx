@@ -23,16 +23,18 @@ const ArtworkPage: React.FC = () => {
   useEffect(() => {
     setIsLoading(true);
     setError(null);
-    // Simulate API call
+    // Simulate API call to fetch a single artwork.
+    // In a real application, this would be an API call to your backend,
+    // e.g., /api/artworks/{id}, which would then query your Neon PostgreSQL database.
     setTimeout(() => {
-      const foundArtwork = MOCK_ARTWORKS.find(art => art.id === id);
+      const foundArtwork = MOCK_ARTWORKS.find(art => art.id === id); // Replace with API response
       if (foundArtwork) {
         setArtwork(foundArtwork);
       } else {
         setError('Artwork not found. It might have slipped into another dimension.');
       }
       setIsLoading(false);
-    }, 500);
+    }, 500); // Simulate network delay
   }, [id]);
 
   if (isLoading) {
