@@ -40,12 +40,14 @@ const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork, index }) => {
       </div>
       <div className="p-4">
         <div className="flex items-center space-x-2 mb-2">
-          <img 
-            src={artwork.artist.avatarUrl} 
-            alt={artwork.artist.name} 
-            className="w-8 h-8 rounded-full border-2 border-pink-500/70 group-hover:border-pink-500 transition-colors"
-          />
-          <span className="text-sm text-slate-300 group-hover:text-cyan-400 transition-colors">{artwork.artist.name}</span>
+          <Link to={`/profile/${artwork.artist.id}`} onClick={(e) => e.stopPropagation()} className="flex items-center space-x-2 group/artist">
+            <img 
+              src={artwork.artist.avatarUrl} 
+              alt={artwork.artist.name} 
+              className="w-8 h-8 rounded-full border-2 border-pink-500/70 group-hover/artist:border-pink-500 transition-colors"
+            />
+            <span className="text-sm text-slate-300 group-hover/artist:text-cyan-400 transition-colors">{artwork.artist.name}</span>
+          </Link>
         </div>
         <div className="flex items-center justify-between text-xs text-slate-400 mt-1">
           {artwork.views && (

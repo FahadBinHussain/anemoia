@@ -1,11 +1,11 @@
 
 import { Artwork, Artist } from './types';
 
-const ARTISTS: Artist[] = [
-  { id: 'artist-1', name: 'Nyx Veil', avatarUrl: 'https://picsum.photos/seed/nyx/100/100' },
-  { id: 'artist-2', name: 'Vector Shift', avatarUrl: 'https://picsum.photos/seed/vector/100/100' },
-  { id: 'artist-3', name: 'Glitch Mona', avatarUrl: 'https://picsum.photos/seed/mona/100/100' },
-  { id: 'artist-4', name: 'Cyra Lumen', avatarUrl: 'https://picsum.photos/seed/cyra/100/100' },
+export const ARTISTS: Artist[] = [
+  { id: 'artist-1', name: 'Nyx Veil', avatarUrl: 'https://picsum.photos/seed/nyx/100/100', coverPhotoUrl: 'https://picsum.photos/seed/nyx-cover/1200/400' },
+  { id: 'artist-2', name: 'Vector Shift', avatarUrl: 'https://picsum.photos/seed/vector/100/100', coverPhotoUrl: 'https://picsum.photos/seed/vector-cover/1200/400' },
+  { id: 'artist-3', name: 'Glitch Mona', avatarUrl: 'https://picsum.photos/seed/mona/100/100', coverPhotoUrl: 'https://picsum.photos/seed/mona-cover/1200/400' },
+  { id: 'artist-4', name: 'Cyra Lumen', avatarUrl: 'https://picsum.photos/seed/cyra/100/100', coverPhotoUrl: 'https://picsum.photos/seed/cyra-cover/1200/400' },
 ];
 
 export const MOCK_ARTWORKS: Artwork[] = [

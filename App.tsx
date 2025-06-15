@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -7,7 +8,8 @@ import HomePage from './pages/HomePage';
 import ArtworkPage from './pages/ArtworkPage';
 import LoginPage from './pages/LoginPage';
 import { useAuth } from './contexts/AuthContext';
-import UploadPage from './pages/UploadPage'; // Placeholder for upload
+import UploadPage from './pages/UploadPage'; 
+import ProfilePage from './pages/ProfilePage'; // Changed
 
 const App: React.FC = () => {
   const { currentUser } = useAuth();
@@ -19,7 +21,10 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/artwork/:id" element={<ArtworkPage />} />
-          <Route path="/login" element={currentUser ? <Navigate to="/" /> : <LoginPage />} />
+          {/* Unified profile route */}
+          <Route path="/profile" element={<ProfilePage />} /> 
+          <Route path="/profile/:profileId" element={<ProfilePage />} />
+          <Route path="/login" element={currentUser ? <Navigate to="/profile" /> : <LoginPage />} />
           <Route path="/upload" element={currentUser ? <UploadPage /> : <Navigate to="/login" />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

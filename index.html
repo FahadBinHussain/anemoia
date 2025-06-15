@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -50,7 +49,7 @@
   "imports": {
     "react/": "https://esm.sh/react@^19.1.0/",
     "react": "https://esm.sh/react@^19.1.0",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.6.2",
+    "react-router-dom": "https://esm.sh/react-router-dom@^6.0.0",
     "react-dom/": "https://esm.sh/react-dom@^19.1.0/"
   }
 }
@@ -60,5 +59,30 @@
 <body class="bg-slate-950 text-slate-200">
   <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
+  
+  <!-- Google API Script Setup -->
+  <script>
+    // This function will be called by the Google API script once it's loaded.
+    // We'll use a callback mechanism to notify AuthContext.
+    window.onGapiLoadCallback = null; // React component will set this.
+    window.gapiIsReady = false; // Flag to indicate gapi.js itself is ready.
+
+    function anemoiaOnGapiLoad() {
+      console.info("index.html: anemoiaOnGapiLoad - START. gapi object:", typeof window.gapi);
+      window.gapiIsReady = true;
+      if (window.onGapiLoadCallback && typeof window.onGapiLoadCallback === 'function') {
+        console.info("index.html: anemoiaOnGapiLoad - Calling window.onGapiLoadCallback.");
+        try {
+            window.onGapiLoadCallback();
+        } catch (e) {
+            console.error("index.html: anemoiaOnGapiLoad - Error EXECUTING onGapiLoadCallback:", e);
+        }
+      } else {
+        console.info("index.html: anemoiaOnGapiLoad - No onGapiLoadCallback to call or it's not a function. Callback type:", typeof window.onGapiLoadCallback);
+      }
+      console.info("index.html: anemoiaOnGapiLoad - END.");
+    }
+  </script>
+  <script src="https://apis.google.com/js/api.js?onload=anemoiaOnGapiLoad" async defer></script>
 </body>
 </html>

@@ -35,6 +35,12 @@ const Header: React.FC = () => {
     setMobileMenuOpen(false);
   };
 
+  const handleProfileNavigation = () => {
+    navigate('/profile');
+    // For mobile menu, ensure it closes after navigation if needed.
+    // If the dropdown is separate from mobileMenuOpen state, this is fine.
+  };
+
   const renderNavLink = (item: NavLinkItem, isMobile: boolean = false) => {
     if (item.authRequired && !currentUser) return null;
     if (item.hideWhenAuth && currentUser) return null;
@@ -97,6 +103,12 @@ const Header: React.FC = () => {
                    <svg className="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                 </button>
                 <div className="absolute right-0 mt-2 w-48 bg-slate-800 rounded-md shadow-xl py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out transform scale-95 group-hover:scale-100 origin-top-right border border-slate-700">
+                  <button
+                    onClick={handleProfileNavigation}
+                    className="block w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-cyan-600 hover:text-white transition-colors"
+                  >
+                    My Profile
+                  </button>
                   <button 
                     onClick={handleLogout}
                     disabled={isLoading}
@@ -138,6 +150,13 @@ const Header: React.FC = () => {
                         </div>
                     </div>
                 </div>
+                <Button
+                    onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }}
+                    variant="outline"
+                    className="w-full text-center mt-2 border-cyan-500 text-cyan-400 hover:bg-cyan-500 hover:text-slate-900"
+                  >
+                    My Profile
+                </Button>
                 <Button 
                     onClick={handleLogout}
                     disabled={isLoading}

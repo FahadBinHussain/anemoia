@@ -18,10 +18,13 @@ const HomePage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    // Simulate API call
+    // Simulate API call to fetch artworks.
+    // In a real application, this would be an API call to your backend,
+    // which would then query your Neon PostgreSQL database.
     setIsLoading(true);
     setTimeout(() => {
-      let filteredArtworks = MOCK_ARTWORKS;
+      // Replace MOCK_ARTWORKS with data from API response
+      let filteredArtworks = MOCK_ARTWORKS; 
       if (searchTerm) {
         filteredArtworks = MOCK_ARTWORKS.filter(art => 
           art.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -31,7 +34,7 @@ const HomePage: React.FC = () => {
       }
       setArtworks(filteredArtworks);
       setIsLoading(false);
-    }, 500);
+    }, 500); // Simulate network delay
   }, [searchTerm]);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
