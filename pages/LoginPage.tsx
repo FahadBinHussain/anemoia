@@ -23,19 +23,17 @@ const UserIcon: React.FC<{className?: string}> = ({ className }) => (
 
 
 const LoginPage: React.FC = () => {
-  const { login, logout, demoLogin, isLoading, isGapiLoaded, currentUser } = useAuth();
+  const { login, demoLogin, isLoading, currentUser } = useAuth();
 
   if (currentUser) {
       // Already handled by Navigate in App.tsx, but good for direct access scenario
       return <p className="text-center text-slate-300">Redirecting...</p>;
   }
 
-  const googleButtonDisabled = isLoading || !isGapiLoaded;
+  const googleButtonDisabled = isLoading;
   let googleButtonText = 'Sign In with Google';
-  if (!isGapiLoaded && isLoading) {
-    googleButtonText = 'Initializing Sign-In...';
-  } else if (isLoading && isGapiLoaded) { // isLoading specifically for Google Sign-In process
-    googleButtonText = 'Connecting to Google...';
+  if (isLoading) {
+    googleButtonText = 'Signing In...';
   }
 
 
@@ -51,17 +49,8 @@ const LoginPage: React.FC = () => {
         </p>
         
         <div className="space-y-4">
-            <Button 
-              onClick={login} 
-              disabled={googleButtonDisabled}
-              variant="outline"
-              size="lg"
-              className="w-full text-slate-200 border-slate-600 hover:bg-slate-700 focus:ring-slate-500"
-              leftIcon={isLoading && isGapiLoaded ? <Spinner size="sm" color="text-slate-300" /> : <GoogleIcon />}
-              aria-label="Sign in with Google"
-            >
-              {googleButtonText}
-            </Button>
+            {/* Container for the Google Sign-In button */}
+            <div id="google-signin-button" className="w-full flex justify-center"></div>
 
             <Button
                 onClick={demoLogin}
@@ -77,8 +66,7 @@ const LoginPage: React.FC = () => {
             </Button>
         </div>
 
-        {!isGapiLoaded && !isLoading && <p className="text-xs text-red-400 mt-4 text-center">Google Sign-In service failed to load. Please try refreshing the page. Demo sign in is available.</p>}
-         {isGapiLoaded && isLoading && !currentUser && <p className="text-xs text-slate-400 mt-4 text-center">Attempting Google Sign-In...</p>}
+        {isLoading && <p className="text-xs text-slate-400 mt-4 text-center">Attempting Google Sign-In...</p>}
 
 
         <p className="text-xs text-slate-500 mt-8 text-center">

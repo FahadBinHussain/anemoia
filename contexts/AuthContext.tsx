@@ -1,21 +1,17 @@
-
-import React, { createContext, useState, useContext, ReactNode, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useCallback, useEffect } from 'react';
 import { User } from '../types';
 import { GOOGLE_CLIENT_ID } from '../config';
 
-// Extend window interface to include gapi and our custom callback/flag
+// Extend window interface to include google
 declare global {
   interface Window {
-    gapi: any;
-    onGapiLoadCallback: (() => void) | null;
-    gapiIsReady: boolean;
+    google: any;
   }
 }
 
 interface AuthContextType {
   currentUser: User | null;
-  isLoading: boolean; // True while gapi is loading or auth state is being determined
-  isGapiLoaded: boolean; // True once gapi.auth2 is initialized
+  isLoading: boolean;
   login: () => Promise<void>;
   logout: () => void;
   demoLogin: () => void; // Added for demo purposes
@@ -35,197 +31,134 @@ const DEMO_USER: User = {
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isGapiLoaded, setIsGapiLoaded] = useState<boolean>(false);
-  const gapiAuth2LoadInitiated = useRef(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Keep loading true initially
 
-  const updateSigninStatus = useCallback((isSignedIn: boolean) => {
-    console.log("AuthContext: updateSigninStatus called. isSignedIn:", isSignedIn);
-    if (isSignedIn) {
-      const googleUser = window.gapi.auth2.getAuthInstance().currentUser.get();
-      const profile = googleUser.getBasicProfile();
-      setCurrentUser({
-        id: profile.getId(),
-        name: profile.getName(),
-        email: profile.getEmail(),
-        avatarUrl: profile.getImageUrl(),
-        givenName: profile.getGivenName(),
-        familyName: profile.getFamilyName(),
-        // Note: Google Sign-In basic profile doesn't provide a cover photo.
-        // This would need to come from a different source or be a default.
-        // For now, it will be undefined for real Google users unless explicitly set elsewhere.
-      });
-      console.log("AuthContext: User is signed IN. currentUser updated.");
+  // Placeholder for GSI credential response handling
+  const handleCredentialResponse = useCallback((response: any) => {
+    console.log("AuthContext: handleCredentialResponse - START. Credential response received.", response);
+    if (response.credential) {
+      // Decode the JWT and set user
+      const base64Url = response.credential.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+
+      const payload = JSON.parse(jsonPayload);
+      console.log("AuthContext: handleCredentialResponse - Decoded JWT payload:", payload);
+
+      const user: User = {
+        id: payload.sub,
+        name: payload.name,
+        email: payload.email,
+        avatarUrl: payload.picture,
+        givenName: payload.given_name,
+        familyName: payload.family_name,
+      };
+
+      setCurrentUser(user);
+      console.log("AuthContext: handleCredentialResponse - currentUser set:", user);
+
     } else {
+      console.error("AuthContext: handleCredentialResponse - No credential in response.");
       setCurrentUser(null);
-      console.log("AuthContext: User is signed OUT. currentUser nulled.");
     }
-    setIsLoading(false);
-    console.log("AuthContext: updateSigninStatus finished. isLoading SET to false.");
+    setIsLoading(false); // Authentication state determined
+    console.log("AuthContext: handleCredentialResponse - isLoading SET to false.");
   }, []);
 
-  const initClient = useCallback(() => {
-    console.log("AuthContext: initClient - START");
-    if (!window.gapi || !window.gapi.auth2) {
-        console.error("AuthContext: initClient - ERROR: gapi.auth2 not available.");
-        setIsGapiLoaded(false);
-        setIsLoading(false);
-        console.log("AuthContext: initClient - gapi.auth2 not available. isLoading SET to false.");
-        return;
-    }
-
-    try {
-      console.log("AuthContext: initClient - Preparing to call gapi.auth2.init(). Client ID:", GOOGLE_CLIENT_ID);
-      const initPromise = window.gapi.auth2.init({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: 'profile email',
-      });
-      console.log("AuthContext: initClient - gapi.auth2.init() called, awaiting promise.");
-
-      initPromise.then(() => {
-        console.log("AuthContext: initClient - gapi.auth2.init() SUCCEEDED.");
-        setIsGapiLoaded(true);
-        const authInstance = window.gapi.auth2.getAuthInstance();
-        if (!authInstance) {
-          console.error("AuthContext: initClient - FATAL: authInstance is null after successful init.");
-          setIsGapiLoaded(false);
-          setIsLoading(false);
-          return;
-        }
-        console.log("AuthContext: initClient - Registering isSignedIn listener.");
-        authInstance.isSignedIn.listen(updateSigninStatus);
-        console.log("AuthContext: initClient - Checking initial isSignedIn status.");
-        updateSigninStatus(authInstance.isSignedIn.get());
-      }).catch((error: any) => {
-        console.error("AuthContext: initClient - gapi.auth2.init() PROMISE REJECTED:", error);
-        setIsGapiLoaded(false);
-        setIsLoading(false);
-        console.log("AuthContext: initClient - gapi.auth2.init() promise rejected. isLoading SET to false.");
-      });
-    } catch (syncError: any) { // 여기가 수정된 부분입니다.
-      console.error("AuthContext: initClient - SYNCHRONOUS error during gapi.auth2.init() call attempt:", syncError);
-      setIsGapiLoaded(false);
+  useEffect(() => {
+    console.log("AuthContext: useEffect - Initializing Google Identity Services (for rendered button).");
+    if (!GOOGLE_CLIENT_ID) {
+      console.error("AuthContext: useEffect - GOOGLE_CLIENT_ID is not set. Skipping GSI initialization and button rendering.");
       setIsLoading(false);
-      console.log("AuthContext: initClient - gapi.auth2.init() synchronous error. isLoading SET to false.");
-    }
-  }, [updateSigninStatus]);
-
-  const attemptGapiAuth2LoadAndInit = useCallback(() => {
-    console.log("AuthContext: attemptGapiAuth2LoadAndInit - START. gapiAuth2LoadInitiated.current:", gapiAuth2LoadInitiated.current);
-
-    if (gapiAuth2LoadInitiated.current) {
-      console.log("AuthContext: attemptGapiAuth2LoadAndInit - Already initiated, skipping.");
       return;
     }
 
-    if (window.gapi && typeof window.gapi.load === 'function') {
-      console.log("AuthContext: attemptGapiAuth2LoadAndInit - gapi.load is available. Setting isLoading to true (if not already).");
-      setIsLoading(true);
-      gapiAuth2LoadInitiated.current = true;
-      console.log("AuthContext: attemptGapiAuth2LoadAndInit - Calling gapi.load('auth2')...");
+    const initializeAndRenderButton = () => {
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        console.log("AuthContext: useEffect - google.accounts.id is available. Initializing and rendering button...");
+        try {
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleCredentialResponse,
+          });
+          console.log("AuthContext: useEffect - GSI initialization complete.");
 
-      window.gapi.load('auth2', {
-        callback: () => {
-          console.log("AuthContext: attemptGapiAuth2LoadAndInit - gapi.load('auth2') CALLBACK received.");
-          initClient();
-        },
-        onerror: (error: any) => {
-          console.error("AuthContext: attemptGapiAuth2LoadAndInit - gapi.load('auth2') ONERROR:", error);
-          setIsGapiLoaded(false);
-          setIsLoading(false);
-          console.log("AuthContext: attemptGapiAuth2LoadAndInit - gapi.load('auth2') error. isLoading SET to false.");
+          const buttonContainer = document.getElementById('google-signin-button');
+          if (buttonContainer) {
+            console.log("AuthContext: useEffect - Button container found, rendering button.");
+            window.google.accounts.id.renderButton(
+              buttonContainer,
+              { type: "standard", theme: "outline", size: "large", width: "360" } // Customization options
+            );
+            console.log("AuthContext: useEffect - Google Sign-In button rendered.");
+            setIsLoading(false); // Initialization and rendering complete
+          } else {
+            console.warn("AuthContext: useEffect - Button container #google-signin-button not found.");
+            // Keep isLoading true, maybe the element isn't in the DOM yet.
+            // A more robust solution might wait for the element.
+             setIsLoading(false); // Set to false to not block the page if container is missing
+          }
+
+        } catch (error) {
+          console.error("AuthContext: useEffect - Error during GSI initialization or rendering:", error);
+          setIsLoading(false); // Initialization/rendering failed
         }
-      });
-    } else {
-      console.error("AuthContext: attemptGapiAuth2LoadAndInit - ERROR: window.gapi or window.gapi.load not available.");
-      setIsLoading(false);
-      setIsGapiLoaded(false);
-      console.log("AuthContext: attemptGapiAuth2LoadAndInit - gapi or gapi.load not available. isLoading SET to false.");
-    }
-  }, [initClient]);
-
-  useEffect(() => {
-    console.log("AuthContext: useEffect - START. window.gapiIsReady:", window.gapiIsReady);
-    if (window.gapiIsReady) {
-      console.log("AuthContext: useEffect - gapi.js is already ready, calling attemptGapiAuth2LoadAndInit.");
-      attemptGapiAuth2LoadAndInit();
-    } else {
-      console.log("AuthContext: useEffect - gapi.js not ready, setting window.onGapiLoadCallback.");
-      window.onGapiLoadCallback = attemptGapiAuth2LoadAndInit;
-    }
-
-    return () => {
-      console.log("AuthContext: useEffect - CLEANUP. Clearing onGapiLoadCallback if it was ours.");
-      if (window.onGapiLoadCallback === attemptGapiAuth2LoadAndInit) {
-        window.onGapiLoadCallback = null;
+      } else {
+        console.warn("AuthContext: useEffect - google.accounts.id not available when effect ran. GSI script might not be loaded yet. Retrying...");
+        // If the script isn't ready, wait a bit and try again.
+        setTimeout(initializeAndRenderButton, 100);
       }
     };
-  }, [attemptGapiAuth2LoadAndInit]);
 
+    initializeAndRenderButton(); // Initial call
+
+    return () => {
+      console.log("AuthContext: useEffect - CLEANUP.");
+      // No explicit cleanup needed for google.accounts.id.initialize or renderButton
+    };
+  }, [handleCredentialResponse]);
+
+  // The 'login' function is now a placeholder as the rendered button handles the click.
+  // We keep it to satisfy the AuthContextType interface.
   const login = useCallback(async () => {
-    console.log("AuthContext: login - START. isGapiLoaded:", isGapiLoaded);
-    if (!isGapiLoaded || !window.gapi || !window.gapi.auth2 || !window.gapi.auth2.getAuthInstance()) {
-      console.warn("AuthContext: login - Google API (auth2) not loaded/initialized or authInstance not available. Cannot sign in.");
-      return;
-    }
-    console.log("AuthContext: login - Setting isLoading to true and calling signIn().");
-    setIsLoading(true);
-    try {
-      await window.gapi.auth2.getAuthInstance().signIn();
-      console.log("AuthContext: login - signIn() promise resolved. Listener should update state.");
-    } catch (error: any) {
-      console.error("AuthContext: login - Error during Google Sign-In:", error);
-      const authInstance = window.gapi.auth2.getAuthInstance();
-      if (authInstance) {
-         updateSigninStatus(authInstance.isSignedIn.get());
-      } else {
-        setIsLoading(false);
-      }
-      console.log("AuthContext: login - signIn() error. isLoading might have been reset by updateSigninStatus or directly.");
-    }
-  }, [isGapiLoaded, updateSigninStatus]);
+      console.log("AuthContext: login - Called (via button click). GSI flow handled by rendered button.");
+      // isLoading will be managed by the GSI flow and handleCredentialResponse
+  }, []);
+
 
   const logout = useCallback(() => {
-    console.log("AuthContext: logout - START. isGapiLoaded:", isGapiLoaded);
-    // If it was a demo user, just clear them without gapi involvement
+    console.log("AuthContext: logout - START (GSI).");
     if (currentUser && currentUser.id === DEMO_USER.id) {
         setCurrentUser(null);
-        setIsLoading(false); // Ensure loading is false
+        setIsLoading(false);
         console.log("AuthContext: logout - Demo user signed out.");
         return;
     }
 
-    if (!isGapiLoaded || !window.gapi || !window.gapi.auth2 || !window.gapi.auth2.getAuthInstance()) {
-      console.warn("AuthContext: logout - Google API (auth2) not loaded/initialized or authInstance not available. Cannot sign out.");
-      if (currentUser !== null || isLoading) updateSigninStatus(false);
-      return;
-    }
-    const authInstance = window.gapi.auth2.getAuthInstance();
-    if (authInstance) {
-        console.log("AuthContext: logout - Calling signOut().");
-        authInstance.signOut().then(() => {
-            console.log("AuthContext: logout - signOut() successful. Listener should update state.");
-            // updateSigninStatus will be called by the listener
-        }).catch((error: any) => {
-            console.error("AuthContext: logout - Error during Google Sign-Out:", error);
-            if (currentUser !== null || isLoading) updateSigninStatus(false);
-        });
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+        console.log("AuthContext: logout - Calling google.accounts.id.disableAutoSelect().");
+        window.google.accounts.id.disableAutoSelect();
+        setCurrentUser(null);
+        setIsLoading(false);
+        console.log("AuthContext: logout - Google user signed out (GSI).");
     } else {
-        console.warn("AuthContext: logout - authInstance not found. Forcing state update.");
-        if (currentUser !== null || isLoading) updateSigninStatus(false);
+        console.warn("AuthContext: logout - Google Identity Services not available. Cannot perform GSI logout.");
+        setCurrentUser(null);
+        setIsLoading(false);
     }
-  }, [isGapiLoaded, updateSigninStatus, currentUser, isLoading]);
+  }, [currentUser]);
 
   const demoLogin = useCallback(() => {
     console.log("AuthContext: demoLogin - START");
     setCurrentUser(DEMO_USER);
-    setIsGapiLoaded(true); // Simulate GAPI being ready for demo user
     setIsLoading(false);
     console.log("AuthContext: demoLogin - Demo user set. currentUser:", DEMO_USER);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ currentUser, isLoading, isGapiLoaded, login, logout, demoLogin }}>
+    <AuthContext.Provider value={{ currentUser, isLoading, login, logout, demoLogin }}>
       {children}
     </AuthContext.Provider>
   );
