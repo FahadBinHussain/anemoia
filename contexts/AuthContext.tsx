@@ -29,25 +29,22 @@ const DEMO_USER: User = {
   coverPhotoUrl: 'https://picsum.photos/seed/demovoyager-cover/1200/400', // Added cover photo
 };
 
+const LOCAL_STORAGE_KEY = 'google_credential';
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true); // Keep loading true initially
 
-  // Placeholder for GSI credential response handling
-  const handleCredentialResponse = useCallback((response: any) => {
-    console.log("AuthContext: handleCredentialResponse - START. Credential response received.", response);
-    if (response.credential) {
-      // Decode the JWT and set user
-      const base64Url = response.credential.split('.')[1];
+  // Helper to decode JWT and extract user
+  const decodeCredential = (credential: string): User | null => {
+    try {
+      const base64Url = credential.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
       }).join(''));
-
       const payload = JSON.parse(jsonPayload);
-      console.log("AuthContext: handleCredentialResponse - Decoded JWT payload:", payload);
-
-      const user: User = {
+      return {
         id: payload.sub,
         name: payload.name,
         email: payload.email,
@@ -55,10 +52,36 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         givenName: payload.given_name,
         familyName: payload.family_name,
       };
+    } catch (e) {
+      console.error('Failed to decode Google credential:', e);
+      return null;
+    }
+  };
 
-      setCurrentUser(user);
-      console.log("AuthContext: handleCredentialResponse - currentUser set:", user);
+  // On mount, restore user from localStorage if present
+  useEffect(() => {
+    const storedCredential = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedCredential) {
+      const user = decodeCredential(storedCredential);
+      if (user) {
+        setCurrentUser(user);
+      }
+    }
+    setIsLoading(false);
+  }, []);
 
+  // Placeholder for GSI credential response handling
+  const handleCredentialResponse = useCallback((response: any) => {
+    console.log("AuthContext: handleCredentialResponse - START. Credential response received.", response);
+    if (response.credential) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, response.credential); // Persist credential
+      const user = decodeCredential(response.credential);
+      if (user) {
+        setCurrentUser(user);
+        console.log("AuthContext: handleCredentialResponse - currentUser set:", user);
+      } else {
+        setCurrentUser(null);
+      }
     } else {
       console.error("AuthContext: handleCredentialResponse - No credential in response.");
       setCurrentUser(null);
@@ -75,48 +98,48 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
 
-    const initializeAndRenderButton = () => {
-      if (window.google && window.google.accounts && window.google.accounts.id) {
-        console.log("AuthContext: useEffect - google.accounts.id is available. Initializing and rendering button...");
-        try {
-          window.google.accounts.id.initialize({
-            client_id: GOOGLE_CLIENT_ID,
-            callback: handleCredentialResponse,
-          });
-          console.log("AuthContext: useEffect - GSI initialization complete.");
+    let retryCount = 0;
+    const maxRetries = 30; // 3 seconds max
+    const retryDelay = 100;
 
-          const buttonContainer = document.getElementById('google-signin-button');
-          if (buttonContainer) {
-            console.log("AuthContext: useEffect - Button container found, rendering button.");
-            window.google.accounts.id.renderButton(
-              buttonContainer,
-              { type: "standard", theme: "outline", size: "large", width: "360" } // Customization options
-            );
-            console.log("AuthContext: useEffect - Google Sign-In button rendered.");
-            setIsLoading(false); // Initialization and rendering complete
-          } else {
-            console.warn("AuthContext: useEffect - Button container #google-signin-button not found.");
-            // Keep isLoading true, maybe the element isn't in the DOM yet.
-            // A more robust solution might wait for the element.
-             setIsLoading(false); // Set to false to not block the page if container is missing
-          }
-
-        } catch (error) {
-          console.error("AuthContext: useEffect - Error during GSI initialization or rendering:", error);
-          setIsLoading(false); // Initialization/rendering failed
-        }
+    const waitForGsiAndButton = (cb: () => void) => {
+      if (
+        window.google &&
+        window.google.accounts &&
+        window.google.accounts.id &&
+        document.getElementById('google-signin-button')
+      ) {
+        cb();
+      } else if (retryCount < maxRetries) {
+        retryCount++;
+        setTimeout(() => waitForGsiAndButton(cb), retryDelay);
       } else {
-        console.warn("AuthContext: useEffect - google.accounts.id not available when effect ran. GSI script might not be loaded yet. Retrying...");
-        // If the script isn't ready, wait a bit and try again.
-        setTimeout(initializeAndRenderButton, 100);
+        console.error('AuthContext: GSI script or button container not found after retries.');
+        setIsLoading(false);
       }
     };
 
-    initializeAndRenderButton(); // Initial call
+    waitForGsiAndButton(() => {
+      try {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleCredentialResponse,
+        });
+        const buttonContainer = document.getElementById('google-signin-button');
+        window.google.accounts.id.renderButton(
+          buttonContainer,
+          { type: "standard", theme: "outline", size: "large", width: "360" }
+        );
+        setIsLoading(false);
+        console.log("AuthContext: Google Sign-In button rendered.");
+      } catch (error) {
+        console.error("AuthContext: Error during GSI initialization or rendering:", error);
+        setIsLoading(false);
+      }
+    });
 
     return () => {
       console.log("AuthContext: useEffect - CLEANUP.");
-      // No explicit cleanup needed for google.accounts.id.initialize or renderButton
     };
   }, [handleCredentialResponse]);
 
@@ -130,6 +153,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = useCallback(() => {
     console.log("AuthContext: logout - START (GSI).");
+    localStorage.removeItem(LOCAL_STORAGE_KEY); // Remove credential
     if (currentUser && currentUser.id === DEMO_USER.id) {
         setCurrentUser(null);
         setIsLoading(false);

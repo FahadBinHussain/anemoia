@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "dev": "prisma generate && ts-node-dev --respawn src/index.ts",
+    "start": "tsc && node dist/index.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.9.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.9.0",
+    "ts-node-dev": "^2.0.0"
+  }
+}
