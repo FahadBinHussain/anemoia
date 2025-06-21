@@ -46,9 +46,9 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Minimal header with search */}
-      <div className="flex flex-col sm:flex-row gap-3 items-center">
+      <div className="flex flex-col sm:flex-row gap-2 items-center mb-2">
         <div className="relative flex-grow w-full sm:w-auto">
             <input 
                 type="text"
@@ -68,7 +68,7 @@ const HomePage: React.FC = () => {
         </Button>
       </div>
       
-      {/* Artwork grid with the exact layout from reference */}
+      {/* Artwork grid with larger cards and thinner gaps */}
       <ArtworkGrid artworks={artworks} isLoading={isLoading} />
     </div>
   );
