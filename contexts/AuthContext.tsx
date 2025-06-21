@@ -188,7 +188,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           if (buttonContainer) {
             window.google.accounts.id.renderButton(
               buttonContainer,
-              { type: "standard", theme: "outline", size: "large", width: "360" }
+              { 
+                type: "standard", 
+                theme: "outline", 
+                size: "large", 
+                width: "360",
+                text: "signin_with",
+                shape: "pill",
+                logo_alignment: "left",
+                // Add custom styling that better matches our neon aesthetic
+                style: {
+                  border: "2px solid #06b6d4",
+                  borderRadius: "9999px", // for a pill shape
+                  backgroundColor: "rgba(6, 182, 212, 0.1)",
+                  color: "white",
+                  boxShadow: "0 0 8px #06b6d4, 0 0 10px #06b6d4 inset",
+                  fontFamily: "'Inter', sans-serif",
+                  textShadow: "0 0 5px #06b6d4" // neon text glow
+                }
+              }
             );
             setIsLoading(false);
             console.log("AuthContext: Google Sign-In button rendered.");
