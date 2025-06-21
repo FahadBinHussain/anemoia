@@ -1,12 +1,12 @@
-
 import React from 'react';
 
 interface SpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   color?: string; // Tailwind color class e.g. text-cyan-500
+  className?: string; // Additional class names
 }
 
-const Spinner: React.FC<SpinnerProps> = ({ size = 'md', color = 'text-cyan-400' }) => {
+const Spinner: React.FC<SpinnerProps> = ({ size = 'md', color = 'text-cyan-400', className = '' }) => {
   const sizeClasses = {
     sm: 'w-4 h-4',
     md: 'w-6 h-6',
@@ -16,7 +16,7 @@ const Spinner: React.FC<SpinnerProps> = ({ size = 'md', color = 'text-cyan-400' 
 
   return (
     <svg 
-      className={`animate-spin ${sizeClasses[size]} ${color}`} 
+      className={`animate-spin ${sizeClasses[size]} ${color} ${className}`} 
       xmlns="http://www.w3.org/2000/svg" 
       fill="none" 
       viewBox="0 0 24 24"

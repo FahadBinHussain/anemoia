@@ -18,34 +18,8 @@ const GoogleIcon: React.FC = () => (
   </svg>
 );
 
-// Style for the Google Sign-In button container
-const googleButtonStyles = `
-  .google-btn-container {
-    transition: all 0.3s ease;
-    border-radius: 9999px;
-    position: relative;
-  }
-  .google-btn-container:hover {
-    box-shadow: 0 0 15px #06b6d4, 0 0 20px #06b6d4 inset !important;
-    transform: translateY(-2px);
-    animation: pulse-google-button 2s infinite;
-  }
-  .google-btn-container > div {
-    width: 100% !important;
-  }
-  
-  @keyframes pulse-google-button {
-    0% {
-      box-shadow: 0 0 15px #06b6d4, 0 0 15px #06b6d4 inset;
-    }
-    50% {
-      box-shadow: 0 0 20px #06b6d4, 0 0 25px #06b6d4 inset;
-    }
-    100% {
-      box-shadow: 0 0 15px #06b6d4, 0 0 15px #06b6d4 inset;
-    }
-  }
-  
+// Style for the modal and custom Google button
+const modalStyles = `
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -80,10 +54,39 @@ const googleButtonStyles = `
   .neon-text-cyan {
     text-shadow: 0 0 8px rgba(6, 182, 212, 0.7);
   }
+  
+  .google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(6, 182, 212, 0.1);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 9999px;
+    border: 2px solid #06b6d4;
+    box-shadow: 0 0 8px #06b6d4, 0 0 10px #06b6d4 inset;
+    font-family: 'Inter', sans-serif;
+    width: 100%;
+    height: 44px;
+    font-weight: 500;
+    text-shadow: 0 0 5px #06b6d4;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .google-btn:hover {
+    box-shadow: 0 0 15px #06b6d4, 0 0 20px #06b6d4 inset;
+    transform: translateY(-2px);
+  }
+  
+  .google-btn:focus {
+    outline: none;
+    box-shadow: 0 0 20px #06b6d4, 0 0 25px #06b6d4 inset;
+  }
 `;
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
-  const { isLoading } = useAuth();
+  const { isLoading, triggerGoogleSignIn } = useAuth();
 
   // Handle ESC key to close modal
   useEffect(() => {
@@ -100,11 +103,26 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     };
   }, [isOpen, onClose]);
 
+  // Only load the Google Identity Services script when the modal is open
+  useEffect(() => {
+    if (isOpen && !document.querySelector('script[src="https://accounts.google.com/gsi/client"]')) {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
+
+  const handleSignInWithGoogle = () => {
+    triggerGoogleSignIn();
+  };
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: googleButtonStyles }} />
+      <style dangerouslySetInnerHTML={{ __html: modalStyles }} />
       <div className="modal-overlay" onClick={onClose}>
         <div 
           className="modal-content neon-border-cyan" 
@@ -141,12 +159,25 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </p>
             
             <div className="w-full">
-              {/* Container for the Google Sign-In button */}
-              <div 
-                id="google-signin-button" 
-                className="w-full flex justify-center min-h-[42px] google-btn-container mb-6"
-              >
-                {isLoading && <Spinner size="sm" />}
+              {/* Custom Google Sign-In Button */}
+              <div className="mb-6">
+                <button 
+                  className="google-btn"
+                  onClick={handleSignInWithGoogle}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <Spinner size="sm" className="mr-2" />
+                      <span>Signing in...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center">
+                      <GoogleIcon />
+                      <span>Sign in with Google</span>
+                    </div>
+                  )}
+                </button>
               </div>
               
               <p className="text-xs text-slate-500 text-center">
