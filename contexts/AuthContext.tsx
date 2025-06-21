@@ -30,6 +30,7 @@ const DEMO_USER: User = {
 };
 
 const LOCAL_STORAGE_KEY = 'google_credential';
+const API_URL = 'http://localhost:4000/api';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -62,12 +63,46 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const storedCredential = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (storedCredential) {
-      const user = decodeCredential(storedCredential);
-      if (user) {
-        setCurrentUser(user);
-      }
+      // Send the credential to the backend to verify and get user data
+      fetch(`${API_URL}/auth/google`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ credential: storedCredential }),
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to verify token with backend');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log("AuthContext: useEffect - Backend auth response:", data);
+          if (data.user) {
+            // Transform the user object to match our User type
+            const user: User = {
+              id: data.user.id,
+              name: data.user.name,
+              email: data.user.email,
+              avatarUrl: data.user.avatar_url,
+              givenName: data.user.given_name || undefined,
+              familyName: data.user.family_name || undefined,
+            };
+            setCurrentUser(user);
+            localStorage.setItem('auth_token', data.token); // Store the JWT from the backend
+          }
+        })
+        .catch(error => {
+          console.error("AuthContext: useEffect - Backend auth error:", error);
+          localStorage.removeItem(LOCAL_STORAGE_KEY);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   // Placeholder for GSI credential response handling
@@ -75,19 +110,51 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log("AuthContext: handleCredentialResponse - START. Credential response received.", response);
     if (response.credential) {
       localStorage.setItem(LOCAL_STORAGE_KEY, response.credential); // Persist credential
-      const user = decodeCredential(response.credential);
-      if (user) {
-        setCurrentUser(user);
-        console.log("AuthContext: handleCredentialResponse - currentUser set:", user);
-      } else {
-        setCurrentUser(null);
-      }
+      
+      // Send the credential to the backend
+      fetch(`${API_URL}/auth/google`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ credential: response.credential }),
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to authenticate with backend');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log("AuthContext: handleCredentialResponse - Backend auth response:", data);
+          if (data.user) {
+            // Transform the user object to match our User type
+            const user: User = {
+              id: data.user.id,
+              name: data.user.name,
+              email: data.user.email,
+              avatarUrl: data.user.avatar_url,
+              givenName: data.user.given_name || undefined,
+              familyName: data.user.family_name || undefined,
+            };
+            setCurrentUser(user);
+            localStorage.setItem('auth_token', data.token); // Store the JWT from the backend
+          } else {
+            setCurrentUser(null);
+          }
+        })
+        .catch(error => {
+          console.error("AuthContext: handleCredentialResponse - Backend auth error:", error);
+          setCurrentUser(null);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     } else {
       console.error("AuthContext: handleCredentialResponse - No credential in response.");
       setCurrentUser(null);
+      setIsLoading(false);
     }
-    setIsLoading(false); // Authentication state determined
-    console.log("AuthContext: handleCredentialResponse - isLoading SET to false.");
   }, []);
 
   useEffect(() => {
@@ -154,6 +221,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = useCallback(() => {
     console.log("AuthContext: logout - START (GSI).");
     localStorage.removeItem(LOCAL_STORAGE_KEY); // Remove credential
+    localStorage.removeItem('auth_token'); // Remove backend JWT
+    
     if (currentUser && currentUser.id === DEMO_USER.id) {
         setCurrentUser(null);
         setIsLoading(false);
