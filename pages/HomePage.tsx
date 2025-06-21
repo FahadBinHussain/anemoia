@@ -46,37 +46,39 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-12">
-      <div className="text-center py-8 md:py-12 bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 rounded-xl shadow-2xl shadow-pink-500/10 border border-slate-800">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-4">
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500">Discover</span>
-          <span className="text-slate-100"> Digital Realms</span>
+    <div className="space-y-8">
+      {/* Hero section - simplified for more focus on artwork */}
+      <div className="text-center py-6 md:py-8">
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-2">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500">Anemoia</span>
         </h1>
-        <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto">
-          Explore a universe of breathtaking digital art. Anemoia is your portal to inspiration.
+        <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+          Explore a universe of breathtaking digital art
         </p>
       </div>
 
-      <div className="mb-8 flex flex-col sm:flex-row gap-4 items-center">
+      {/* Search and filter controls - more compact */}
+      <div className="flex flex-col sm:flex-row gap-3 items-center mb-6">
         <div className="relative flex-grow w-full sm:w-auto">
             <input 
                 type="text"
                 placeholder="Search artworks, artists, tags..."
                 value={searchTerm}
                 onChange={handleSearchChange}
-                className="w-full pl-10 pr-4 py-3 bg-slate-800 text-slate-200 border border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors placeholder-slate-500"
+                className="w-full pl-10 pr-4 py-2 bg-slate-800/80 text-slate-200 border border-slate-700 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors placeholder-slate-500"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="w-5 h-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
             </div>
         </div>
-        <Button variant="outline" className="text-cyan-400 border-cyan-500 w-full sm:w-auto" leftIcon={<FilterIcon />}>
+        <Button variant="outline" className="text-cyan-400 border-cyan-500 w-full sm:w-auto py-2 px-4" leftIcon={<FilterIcon />}>
             Filters
         </Button>
       </div>
       
+      {/* Artwork grid - now with masonry layout */}
       <ArtworkGrid artworks={artworks} isLoading={isLoading} />
     </div>
   );
