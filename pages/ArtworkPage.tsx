@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ArtistMoreWorks from '../components/ArtistMoreWorks';
 import TagsCard from '../components/TagsCard';
@@ -13,6 +13,7 @@ import { useFollow } from '../contexts/FollowContext';
 import { useLike } from '../contexts/LikeContext';
 import { useSave } from '../contexts/SaveContext';
 import { useComment } from '../contexts/CommentContext';
+import { useAuthModal } from '../contexts/AuthModalContext';
 
 const ArrowLeftIcon: React.FC<{className?: string}> = ({className}) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-5 h-5"}>
@@ -29,18 +30,20 @@ const CloseIcon: React.FC<{className?: string}> = ({className}) => (
 // This component will be rendered directly in the App.tsx layout without the footer
 const ArtworkPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { currentUser } = useAuth();
+  const { isFollowing, followArtist, unfollowArtist } = useFollow();
+  const { isLiked, likeArtwork, unlikeArtwork } = useLike();
+  const { isSaved, saveArtwork, unsaveArtwork } = useSave();
+  const { getComments, addComment } = useComment();
+  const { openAuthModal } = useAuthModal();
+
   const [artwork, setArtwork] = useState<Artwork | null>(null);
   const [moreArtworks, setMoreArtworks] = useState<Artwork[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [headerHeight, setHeaderHeight] = useState(0);
+  const [headerHeight, setHeaderHeight] = useState<number>(64);
+  const [commentText, setCommentText] = useState('');
   
-  const { currentUser } = useAuth();
-  const { followArtist, unfollowArtist, isFollowing } = useFollow();
-  const { likeArtwork, unlikeArtwork, isLiked } = useLike();
-  const { saveArtwork, unsaveArtwork, isSaved } = useSave();
-  const { getComments } = useComment();
-
   // Effect to scroll to top when component mounts or when the artwork ID changes
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -83,7 +86,13 @@ const ArtworkPage: React.FC = () => {
   }, [id]);
 
   const handleFollowToggle = () => {
-    if (!currentUser || !artwork) return;
+    if (!artwork) return;
+    
+    if (!currentUser) {
+      openAuthModal();
+      return;
+    }
+    
     if (isFollowing(artwork.artist.id)) {
       unfollowArtist(artwork.artist.id);
     } else {
@@ -92,7 +101,13 @@ const ArtworkPage: React.FC = () => {
   };
 
   const handleLikeToggle = () => {
-    if (!currentUser || !id) return;
+    if (!id) return;
+    
+    if (!currentUser) {
+      openAuthModal();
+      return;
+    }
+    
     if (isLiked(id)) {
       unlikeArtwork(id);
     } else {
@@ -101,12 +116,32 @@ const ArtworkPage: React.FC = () => {
   };
 
   const handleSaveToggle = () => {
-    if (!currentUser || !id) return;
+    if (!id) return;
+    
+    if (!currentUser) {
+      openAuthModal();
+      return;
+    }
+    
     if (isSaved(id)) {
       unsaveArtwork(id);
     } else {
       saveArtwork(id);
     }
+  };
+
+  const handleCommentSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    
+    if (!currentUser) {
+      openAuthModal();
+      return;
+    }
+
+    if (!commentText.trim() || !id) return;
+    
+    addComment(id, commentText.trim());
+    setCommentText('');
   };
 
   if (isLoading) {
@@ -188,6 +223,7 @@ const ArtworkPage: React.FC = () => {
                   onClick={handleFollowToggle}
                   variant={isCurrentlyFollowing ? "primary" : "outline"}
                   size="sm"
+                  requiresAuth={true}
                   className={`${isCurrentlyFollowing ? '' : 'text-cyan-400 border-cyan-500 hover:bg-cyan-500 hover:text-slate-900'}`}
                 >
                   {isCurrentlyFollowing ? 'Following' : 'Follow'}
@@ -211,6 +247,7 @@ const ArtworkPage: React.FC = () => {
                 onClick={handleLikeToggle}
                 variant={isCurrentlyLiked ? "secondary" : "outline"}
                 size="lg"
+                requiresAuth={true}
                 className={`flex-1 flex justify-center items-center ${isCurrentlyLiked ? 'bg-pink-500 text-white' : 'text-pink-400 border-pink-500 hover:bg-pink-500 hover:text-slate-900'}`}
                 leftIcon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={isCurrentlyLiked ? "currentColor" : "none"} stroke="currentColor" className="w-6 h-6">
@@ -225,6 +262,7 @@ const ArtworkPage: React.FC = () => {
                 onClick={handleSaveToggle}
                 variant={isCurrentlySaved ? "primary" : "outline"}
                 size="lg"
+                requiresAuth={true}
                 className={`flex-1 flex justify-center items-center ${isCurrentlySaved ? 'bg-cyan-500 text-white' : 'text-cyan-400 border-cyan-500 hover:bg-cyan-500 hover:text-slate-900'}`}
                 leftIcon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={isCurrentlySaved ? "currentColor" : "none"} stroke="currentColor" className="w-6 h-6">
@@ -261,21 +299,45 @@ const ArtworkPage: React.FC = () => {
             
             {/* Comment section */}
             <div className="mb-8 bg-slate-800/50 p-4 rounded-lg border border-slate-700">
-              <h3 className="text-lg font-bold mb-4 text-cyan-400">SIGN IN TO COMMENT!</h3>
-              <div className="bg-slate-800 rounded-lg p-4 flex border border-slate-700">
+              <h3 className="text-lg font-bold mb-4 text-cyan-400">
+                {currentUser ? 'Add a comment' : 'Sign in to comment!'}
+              </h3>
+              <form onSubmit={handleCommentSubmit} className="bg-slate-800 rounded-lg p-4 flex border border-slate-700">
                 <input 
                   type="text" 
-                  placeholder="Add a comment" 
+                  placeholder={currentUser ? "Add a comment..." : "Sign in to comment"}
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
                   className="flex-grow bg-transparent border-none outline-none text-white focus:ring-1 focus:ring-cyan-500"
-                  disabled={!currentUser}
+                  onClick={() => !currentUser && openAuthModal()}
+                  readOnly={!currentUser}
                 />
                 <button 
+                  type="submit"
                   className="ml-2 bg-cyan-500 text-slate-900 px-4 py-1 rounded-md hover:bg-cyan-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!currentUser}
+                  disabled={!currentUser || !commentText.trim()}
                 >
                   &gt;
                 </button>
-              </div>
+              </form>
+              
+              {/* Display comments */}
+              {artworkComments.length > 0 && (
+                <div className="mt-4 space-y-3">
+                  {artworkComments.map(comment => (
+                    <div key={comment.id} className="bg-slate-800 p-3 rounded-lg">
+                      <div className="flex items-center mb-2">
+                        <img src={comment.user.avatarUrl} alt={comment.user.name} className="w-6 h-6 rounded-full mr-2" />
+                        <span className="font-medium text-cyan-400">{comment.user.name}</span>
+                        <span className="text-xs text-slate-500 ml-auto">
+                          {new Date(comment.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </span>
+                      </div>
+                      <p className="text-slate-300">{comment.text}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             
             {/* Tags */}

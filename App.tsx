@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import ArtworkPage from './pages/ArtworkPage';
 import { useAuth } from './contexts/AuthContext';
+import { useAuthModal } from './contexts/AuthModalContext';
 import UploadPage from './pages/UploadPage'; 
 import ProfilePage from './pages/ProfilePage';
 import ScrollToTop from './components/ScrollToTop';
@@ -13,8 +14,8 @@ import AuthModal from './components/AuthModal';
 
 const App: React.FC = () => {
   const { currentUser } = useAuth();
+  const { isAuthModalOpen, closeAuthModal, openAuthModal } = useAuthModal();
   const location = useLocation();
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   
   // Check if we're on the artwork detail page
   const isArtworkPage = location.pathname.startsWith('/artwork/');
@@ -26,7 +27,7 @@ const App: React.FC = () => {
     }
     
     // If not authenticated, show auth modal and render nothing until authenticated
-    setIsAuthModalOpen(true);
+    openAuthModal();
     return null;
   };
 
@@ -62,7 +63,7 @@ const App: React.FC = () => {
       {/* Auth modal for protected routes */}
       <AuthModal 
         isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
+        onClose={closeAuthModal} 
       />
     </div>
   );

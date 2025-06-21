@@ -6,6 +6,7 @@ import { FollowProvider } from './contexts/FollowContext';
 import { LikeProvider } from './contexts/LikeContext';
 import { SaveProvider } from './contexts/SaveContext';
 import { CommentProvider } from './contexts/CommentContext'; // Added
+import { AuthModalProvider } from './contexts/AuthModalContext';
 import { HashRouter } from 'react-router-dom';
 
 const rootElement = document.getElementById('root');
@@ -18,15 +19,17 @@ root.render(
   <React.StrictMode>
     <HashRouter>
       <AuthProvider>
-        <FollowProvider>
-          <LikeProvider>
-            <SaveProvider>
-              <CommentProvider> {/* Added */}
-                <App />
-              </CommentProvider> {/* Added */}
-            </SaveProvider>
-          </LikeProvider>
-        </FollowProvider>
+        <AuthModalProvider>
+          <FollowProvider>
+            <LikeProvider>
+              <SaveProvider>
+                <CommentProvider>
+                  <App />
+                </CommentProvider>
+              </SaveProvider>
+            </LikeProvider>
+          </FollowProvider>
+        </AuthModalProvider>
       </AuthProvider>
     </HashRouter>
   </React.StrictMode>

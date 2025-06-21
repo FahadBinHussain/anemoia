@@ -1,6 +1,7 @@
 import React from 'react';
 import Button from './Button';
 import { Artist } from '../types';
+import { useAuthModal } from '../contexts/AuthModalContext';
 
 interface ActionCardProps {
   artworkId: string;
@@ -66,6 +67,19 @@ const ActionCard: React.FC<ActionCardProps> = ({
   onSaveToggle,
   isLoggedIn
 }) => {
+  const { openAuthModal } = useAuthModal();
+
+  const handleAction = (callback?: () => void) => {
+    if (!isLoggedIn) {
+      openAuthModal();
+      return;
+    }
+    
+    if (callback) {
+      callback();
+    }
+  };
+
   return (
     <div className="bg-slate-900 rounded-lg overflow-hidden border border-slate-800 shadow-lg card-glow-pink">
       <div className="p-4">
@@ -75,31 +89,28 @@ const ActionCard: React.FC<ActionCardProps> = ({
         </div>
         <div className="flex flex-col space-y-2">
           <Button
-            onClick={onFollowToggle}
+            onClick={() => handleAction(onFollowToggle)}
             variant={isFollowing ? "primary" : "outline"}
-            disabled={!isLoggedIn}
             leftIcon={<UserPlusIcon />}
-            className={`w-full btn-hover-glow-cyan ${isFollowing ? '' : 'text-cyan-400 border-cyan-500 hover:bg-cyan-500 hover:text-slate-900'} ${!isLoggedIn ? 'opacity-60 cursor-not-allowed' : ''}`}
+            className={`w-full btn-hover-glow-cyan ${isFollowing ? '' : 'text-cyan-400 border-cyan-500 hover:bg-cyan-500 hover:text-slate-900'}`}
           >
             {isFollowing ? 'Following' : 'Follow'} {artist.name}
           </Button>
           
           <Button
-            onClick={onLikeToggle}
+            onClick={() => handleAction(onLikeToggle)}
             variant={isLiked ? "secondary" : "outline"}
-            disabled={!isLoggedIn}
             leftIcon={<HeartIcon filled={isLiked} />}
-            className={`w-full btn-hover-glow-pink ${isLiked ? 'bg-pink-500 text-white' : 'text-pink-400 border-pink-500 hover:bg-pink-500 hover:text-slate-900'} ${!isLoggedIn ? 'opacity-60 cursor-not-allowed' : ''}`}
+            className={`w-full btn-hover-glow-pink ${isLiked ? 'bg-pink-500 text-white' : 'text-pink-400 border-pink-500 hover:bg-pink-500 hover:text-slate-900'}`}
           >
             {isLiked ? 'Liked' : 'Like'} Artwork
           </Button>
           
           <Button
-            onClick={onSaveToggle}
+            onClick={() => handleAction(onSaveToggle)}
             variant={isSaved ? "primary" : "outline"}
-            disabled={!isLoggedIn}
             leftIcon={<BookmarkIcon filled={isSaved} />}
-            className={`w-full btn-hover-glow-cyan ${isSaved ? 'bg-cyan-500 text-white' : 'text-cyan-400 border-cyan-500 hover:bg-cyan-500 hover:text-slate-900'} ${!isLoggedIn ? 'opacity-60 cursor-not-allowed' : ''}`}
+            className={`w-full btn-hover-glow-cyan ${isSaved ? 'bg-cyan-500 text-white' : 'text-cyan-400 border-cyan-500 hover:bg-cyan-500 hover:text-slate-900'}`}
           >
             {isSaved ? 'Saved' : 'Save'} Artwork
           </Button>

@@ -1,5 +1,5 @@
-
 import React, { ReactNode } from 'react';
+import { useAuthModal } from '../contexts/AuthModalContext';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
@@ -7,6 +7,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'sm' | 'md' | 'lg';
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
+  requiresAuth?: boolean;
 }
 
 const Button: React.FC<ButtonProps> = ({ 
@@ -16,8 +17,20 @@ const Button: React.FC<ButtonProps> = ({
   className = '', 
   leftIcon,
   rightIcon,
+  requiresAuth = false,
+  onClick,
   ...props 
 }) => {
+  const { openAuthModal } = useAuthModal();
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (requiresAuth && typeof window !== 'undefined' && !localStorage.getItem('auth_token')) {
+      openAuthModal();
+    } else if (onClick) {
+      onClick(e);
+    }
+  };
+
   const baseStyles = "inline-flex items-center justify-center rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 transition-all duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed";
 
   const sizeStyles = {
@@ -39,6 +52,7 @@ const Button: React.FC<ButtonProps> = ({
   return (
     <button
       className={`${baseStyles} ${sizeStyles[size]} ${finalVariantStyle} ${className}`}
+      onClick={handleClick}
       {...props}
     >
       {leftIcon && <span className="mr-2 -ml-1 h-5 w-5">{leftIcon}</span>}

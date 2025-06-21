@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, ReactNode, useCallback, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { useAuthModal } from './AuthModalContext';
 
 interface SaveContextType {
   savedArtworkIds: Set<string>;
@@ -17,6 +18,7 @@ export const SaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [savedArtworkIds, setSavedArtworkIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { currentUser } = useAuth();
+  const { openAuthModal } = useAuthModal();
 
   // Load initial saved artworks from the backend when the user changes
   useEffect(() => {
@@ -58,7 +60,10 @@ export const SaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [currentUser]);
 
   const saveArtwork = useCallback((artworkId: string) => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      openAuthModal();
+      return;
+    }
     
     const token = localStorage.getItem('auth_token');
     if (!token) return;
@@ -93,10 +98,13 @@ export const SaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           return newIds;
         });
       });
-  }, [currentUser]);
+  }, [currentUser, openAuthModal]);
 
   const unsaveArtwork = useCallback((artworkId: string) => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      openAuthModal();
+      return;
+    }
     
     const token = localStorage.getItem('auth_token');
     if (!token) return;
@@ -131,7 +139,7 @@ export const SaveProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Revert optimistic update on error
         setSavedArtworkIds(prevIds => new Set(prevIds).add(artworkId));
       });
-  }, [currentUser]);
+  }, [currentUser, openAuthModal]);
 
   const isSaved = useCallback((artworkId: string) => {
     return savedArtworkIds.has(artworkId);
