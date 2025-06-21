@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
 import { Comment, User } from '../types';
 import { useAuth } from './AuthContext';
+import { useAuthModal } from './AuthModalContext';
 
 interface CommentContextType {
   commentsMap: Map<string, Comment[]>;
@@ -13,6 +14,7 @@ const CommentContext = createContext<CommentContextType | undefined>(undefined);
 export const CommentProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [commentsMap, setCommentsMap] = useState<Map<string, Comment[]>>(new Map());
   const { currentUser } = useAuth();
+  const { openAuthModal } = useAuthModal();
 
   const getComments = useCallback((artworkId: string): Comment[] => {
     return commentsMap.get(artworkId) || [];
@@ -20,7 +22,7 @@ export const CommentProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const addComment = useCallback((artworkId: string, text: string) => {
     if (!currentUser) {
-      console.warn("User must be logged in to comment.");
+      openAuthModal();
       return;
     }
     
@@ -38,7 +40,7 @@ export const CommentProvider: React.FC<{ children: ReactNode }> = ({ children })
       newMap.set(artworkId, [...existingComments, newComment]);
       return newMap;
     });
-  }, [currentUser]);
+  }, [currentUser, openAuthModal]);
 
   return (
     <CommentContext.Provider value={{ commentsMap, getComments, addComment }}>

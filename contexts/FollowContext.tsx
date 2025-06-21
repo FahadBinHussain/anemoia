@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, ReactNode, useCallback, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { useAuthModal } from './AuthModalContext';
 
 interface FollowContextType {
   followedArtistIds: Set<string>;
@@ -17,6 +18,7 @@ export const FollowProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [followedArtistIds, setFollowedArtistIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { currentUser } = useAuth();
+  const { openAuthModal } = useAuthModal();
 
   // Load initial follows from the backend when the user changes
   useEffect(() => {
@@ -58,7 +60,10 @@ export const FollowProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, [currentUser]);
 
   const followArtist = useCallback((artistId: string) => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      openAuthModal();
+      return;
+    }
     
     const token = localStorage.getItem('auth_token');
     if (!token) return;
@@ -93,10 +98,13 @@ export const FollowProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           return newIds;
         });
       });
-  }, [currentUser]);
+  }, [currentUser, openAuthModal]);
 
   const unfollowArtist = useCallback((artistId: string) => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      openAuthModal();
+      return;
+    }
     
     const token = localStorage.getItem('auth_token');
     if (!token) return;
@@ -131,7 +139,7 @@ export const FollowProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         // Revert optimistic update on error
         setFollowedArtistIds(prevIds => new Set(prevIds).add(artistId));
       });
-  }, [currentUser]);
+  }, [currentUser, openAuthModal]);
 
   const isFollowing = useCallback((artistId: string) => {
     return followedArtistIds.has(artistId);

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useAuthModal } from '../contexts/AuthModalContext';
 import { NavLinkItem } from '../types';
 import Button from './Button';
 import AuthModal from './AuthModal';
@@ -20,14 +21,14 @@ const CloseIcon: React.FC<{className?: string}> = ({ className }) => (
 
 const Header: React.FC = () => {
   const { currentUser, logout, isLoading } = useAuth();
+  const { openAuthModal } = useAuthModal();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const navLinks: NavLinkItem[] = [
     { label: 'Explore', href: '/' },
     { label: 'Upload Art', href: '/upload', authRequired: true, isButton: true },
-    { label: 'Sign In', href: '#', hideWhenAuth: true, isButton: true, action: () => setIsAuthModalOpen(true) },
+    { label: 'Sign In', href: '#', hideWhenAuth: true, isButton: true, action: () => openAuthModal() },
   ];
 
   const handleLogout = () => {
@@ -180,8 +181,6 @@ const Header: React.FC = () => {
           </nav>
         </div>
       )}
-      
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </>
   );
 };
