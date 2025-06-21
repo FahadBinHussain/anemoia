@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -82,6 +81,10 @@ const ProfilePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Scroll to top when component mounts or when the profile ID changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [profileId]);
 
   useEffect(() => {
     setIsLoading(true);

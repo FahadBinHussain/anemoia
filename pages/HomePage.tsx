@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import ArtworkGrid from '../components/ArtworkGrid';
 import { MOCK_ARTWORKS } from '../constants';
@@ -36,6 +35,11 @@ const HomePage: React.FC = () => {
       setIsLoading(false);
     }, 500); // Simulate network delay
   }, [searchTerm]);
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);

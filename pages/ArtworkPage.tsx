@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ArtworkDetail from '../components/ArtworkDetail';
@@ -19,6 +18,11 @@ const ArtworkPage: React.FC = () => {
   const [artwork, setArtwork] = useState<Artwork | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Effect to scroll to top when component mounts or when the artwork ID changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
 
   useEffect(() => {
     setIsLoading(true);
