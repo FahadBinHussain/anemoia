@@ -1,22 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import ArtworkPage from './pages/ArtworkPage';
-import LoginPage from './pages/LoginPage';
 import { useAuth } from './contexts/AuthContext';
 import UploadPage from './pages/UploadPage'; 
-import ProfilePage from './pages/ProfilePage'; // Changed
+import ProfilePage from './pages/ProfilePage';
 import ScrollToTop from './components/ScrollToTop';
 import ScrollToTopButton from './components/ScrollToTopButton';
+import AuthModal from './components/AuthModal';
 
 const App: React.FC = () => {
   const { currentUser } = useAuth();
   const location = useLocation();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   
   // Check if we're on the artwork detail page
   const isArtworkPage = location.pathname.startsWith('/artwork/');
+
+  // Handle protected routes that require authentication
+  const ProtectedRoute: React.FC<{element: React.ReactNode}> = ({ element }) => {
+    if (currentUser) {
+      return <>{element}</>;
+    }
+    
+    // If not authenticated, show auth modal and render nothing until authenticated
+    setIsAuthModalOpen(true);
+    return null;
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-950">
@@ -30,10 +42,13 @@ const App: React.FC = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/artwork/:id" element={<ArtworkPage />} />
           {/* Unified profile route */}
-          <Route path="/profile" element={<ProfilePage />} /> 
+          <Route path="/profile" element={
+            <ProtectedRoute element={<ProfilePage />} />
+          } /> 
           <Route path="/profile/:profileId" element={<ProfilePage />} />
-          <Route path="/login" element={currentUser ? <Navigate to="/profile" /> : <LoginPage />} />
-          <Route path="/upload" element={currentUser ? <UploadPage /> : <Navigate to="/login" />} />
+          <Route path="/upload" element={
+            <ProtectedRoute element={<UploadPage />} />
+          } />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
@@ -43,6 +58,12 @@ const App: React.FC = () => {
       
       {/* Only show scroll-to-top button on non-artwork pages */}
       {!isArtworkPage && <ScrollToTopButton />}
+
+      {/* Auth modal for protected routes */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+      />
     </div>
   );
 };
