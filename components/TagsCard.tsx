@@ -17,17 +17,17 @@ const TagsCard: React.FC<TagsCardProps> = ({ tags }) => {
   }
 
   return (
-    <div className="bg-slate-900 rounded-lg overflow-hidden border border-slate-800 shadow-lg">
+    <div className="bg-slate-900 rounded-lg overflow-hidden border border-slate-800 shadow-lg card-glow-pink">
       <div className="p-4">
-        <div className="flex items-center mb-3 text-slate-200">
+        <div className="flex items-center mb-3">
           <TagIcon className="w-5 h-5 text-pink-400 mr-2 shrink-0"/>
-          <h3 className="text-lg font-medium">Tags</h3>
+          <h3 className="text-lg font-medium text-pink-400 neon-text-pink">Tags</h3>
         </div>
         <div className="flex flex-wrap gap-2">
           {tags.map(tag => (
             <span 
               key={tag} 
-              className="px-3 py-1 text-xs bg-slate-700 text-cyan-300 rounded-full border border-slate-600 hover:bg-cyan-500 hover:text-slate-900 hover:border-cyan-500 transition-all cursor-pointer"
+              className="px-3 py-1 text-xs bg-slate-700 text-cyan-300 rounded-full border border-slate-600 transition-all cursor-pointer tag-hover"
             >
               {tag}
             </span>

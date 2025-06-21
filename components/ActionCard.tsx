@@ -67,11 +67,11 @@ const ActionCard: React.FC<ActionCardProps> = ({
   isLoggedIn
 }) => {
   return (
-    <div className="bg-slate-900 rounded-lg overflow-hidden border border-slate-800 shadow-lg">
+    <div className="bg-slate-900 rounded-lg overflow-hidden border border-slate-800 shadow-lg card-glow-pink">
       <div className="p-4">
-        <div className="flex items-center mb-3 text-slate-200">
+        <div className="flex items-center mb-3">
           <HandIcon className="w-5 h-5 text-pink-400 mr-2 shrink-0"/>
-          <h3 className="text-lg font-medium">Interact</h3>
+          <h3 className="text-lg font-medium text-pink-400 neon-text-pink">Interact</h3>
         </div>
         <div className="flex flex-col space-y-2">
           <Button
@@ -79,7 +79,7 @@ const ActionCard: React.FC<ActionCardProps> = ({
             variant={isFollowing ? "primary" : "outline"}
             disabled={!isLoggedIn}
             leftIcon={<UserPlusIcon />}
-            className={`w-full ${isFollowing ? '' : 'text-cyan-400 border-cyan-500 hover:bg-cyan-500 hover:text-slate-900'} ${!isLoggedIn ? 'opacity-60 cursor-not-allowed' : ''}`}
+            className={`w-full btn-hover-glow-cyan ${isFollowing ? '' : 'text-cyan-400 border-cyan-500 hover:bg-cyan-500 hover:text-slate-900'} ${!isLoggedIn ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             {isFollowing ? 'Following' : 'Follow'} {artist.name}
           </Button>
@@ -89,7 +89,7 @@ const ActionCard: React.FC<ActionCardProps> = ({
             variant={isLiked ? "secondary" : "outline"}
             disabled={!isLoggedIn}
             leftIcon={<HeartIcon filled={isLiked} />}
-            className={`w-full ${isLiked ? 'bg-pink-500 text-white' : 'text-pink-400 border-pink-500 hover:bg-pink-500 hover:text-slate-900'} ${!isLoggedIn ? 'opacity-60 cursor-not-allowed' : ''}`}
+            className={`w-full btn-hover-glow-pink ${isLiked ? 'bg-pink-500 text-white' : 'text-pink-400 border-pink-500 hover:bg-pink-500 hover:text-slate-900'} ${!isLoggedIn ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             {isLiked ? 'Liked' : 'Like'} Artwork
           </Button>
@@ -99,7 +99,7 @@ const ActionCard: React.FC<ActionCardProps> = ({
             variant={isSaved ? "primary" : "outline"}
             disabled={!isLoggedIn}
             leftIcon={<BookmarkIcon filled={isSaved} />}
-            className={`w-full ${isSaved ? 'bg-teal-500 text-white' : 'text-teal-400 border-teal-500 hover:bg-teal-500 hover:text-slate-900'} ${!isLoggedIn ? 'opacity-60 cursor-not-allowed' : ''}`}
+            className={`w-full btn-hover-glow-cyan ${isSaved ? 'bg-cyan-500 text-white' : 'text-cyan-400 border-cyan-500 hover:bg-cyan-500 hover:text-slate-900'} ${!isLoggedIn ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             {isSaved ? 'Saved' : 'Save'} Artwork
           </Button>
