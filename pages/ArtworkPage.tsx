@@ -2,10 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ArtworkDetail from '../components/ArtworkDetail';
 import ArtistMoreWorks from '../components/ArtistMoreWorks';
+import TagsCard from '../components/TagsCard';
+import CommentsCard from '../components/CommentsCard';
+import ActionCard from '../components/ActionCard';
 import Spinner from '../components/Spinner';
 import { MOCK_ARTWORKS } from '../constants';
 import { Artwork } from '../types';
 import Button from '../components/Button';
+import { useAuth } from '../contexts/AuthContext';
+import { useFollow } from '../contexts/FollowContext';
+import { useLike } from '../contexts/LikeContext';
+import { useSave } from '../contexts/SaveContext';
+import { useComment } from '../contexts/CommentContext';
 
 const ArrowLeftIcon: React.FC<{className?: string}> = ({className}) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-5 h-5"}>
@@ -20,6 +28,12 @@ const ArtworkPage: React.FC = () => {
   const [moreArtworks, setMoreArtworks] = useState<Artwork[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const { currentUser } = useAuth();
+  const { followArtist, unfollowArtist, isFollowing } = useFollow();
+  const { likeArtwork, unlikeArtwork, isLiked } = useLike();
+  const { saveArtwork, unsaveArtwork, isSaved } = useSave();
+  const { getComments } = useComment();
 
   // Effect to scroll to top when component mounts or when the artwork ID changes
   useEffect(() => {
@@ -50,6 +64,33 @@ const ArtworkPage: React.FC = () => {
     }, 500); // Simulate network delay
   }, [id]);
 
+  const handleFollowToggle = () => {
+    if (!currentUser || !artwork) return;
+    if (isFollowing(artwork.artist.id)) {
+      unfollowArtist(artwork.artist.id);
+    } else {
+      followArtist(artwork.artist.id);
+    }
+  };
+
+  const handleLikeToggle = () => {
+    if (!currentUser || !id) return;
+    if (isLiked(id)) {
+      unlikeArtwork(id);
+    } else {
+      likeArtwork(id);
+    }
+  };
+
+  const handleSaveToggle = () => {
+    if (!currentUser || !id) return;
+    if (isSaved(id)) {
+      unsaveArtwork(id);
+    } else {
+      saveArtwork(id);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
@@ -75,24 +116,57 @@ const ArtworkPage: React.FC = () => {
     return <p className="text-center text-xl text-slate-400">Artwork data seems to be corrupted.</p>;
   }
 
+  const artworkComments = getComments(artwork.id);
+  const isCurrentlyFollowing = isFollowing(artwork.artist.id);
+  const isCurrentlyLiked = isLiked(artwork.id);
+  const isCurrentlySaved = isSaved(artwork.id);
+
   return (
-    <div>
-      <Link to="/" className="inline-flex items-center text-cyan-400 hover:text-cyan-300 transition-colors group mb-6">
+    <div className="space-y-6">
+      <Link to="/" className="inline-flex items-center text-cyan-400 hover:text-cyan-300 transition-colors group">
           <ArrowLeftIcon className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
           Back to Explore
       </Link>
       
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3">
-          <ArtworkDetail artwork={artwork} />
+      {/* Main content column */}
+      <div>
+        <ArtworkDetail artwork={artwork} />
+      </div>
+      
+      {/* Cards section - all cards in a row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Tags card */}
+        <div>
+          <TagsCard tags={artwork.tags} />
         </div>
         
-        <div className="lg:col-span-1 space-y-6">
-          {moreArtworks.length > 0 && (
-            <ArtistMoreWorks artist={artwork.artist} artworks={moreArtworks} />
-          )}
+        {/* Comments card */}
+        <div>
+          <CommentsCard artworkId={artwork.id} comments={artworkComments} />
+        </div>
+        
+        {/* Action buttons card */}
+        <div>
+          <ActionCard 
+            artworkId={artwork.id}
+            artist={artwork.artist}
+            isFollowing={isCurrentlyFollowing}
+            isLiked={isCurrentlyLiked}
+            isSaved={isCurrentlySaved}
+            onFollowToggle={handleFollowToggle}
+            onLikeToggle={handleLikeToggle}
+            onSaveToggle={handleSaveToggle}
+            isLoggedIn={!!currentUser}
+          />
         </div>
       </div>
+      
+      {/* More by artist */}
+      {moreArtworks.length > 0 && (
+        <div>
+          <ArtistMoreWorks artist={artwork.artist} artworks={moreArtworks} />
+        </div>
+      )}
     </div>
   );
 };
