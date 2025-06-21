@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -10,12 +8,14 @@ import LoginPage from './pages/LoginPage';
 import { useAuth } from './contexts/AuthContext';
 import UploadPage from './pages/UploadPage'; 
 import ProfilePage from './pages/ProfilePage'; // Changed
+import ScrollToTop from './components/ScrollToTop';
 
 const App: React.FC = () => {
   const { currentUser } = useAuth();
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-950">
+      <ScrollToTop />
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
         <Routes>

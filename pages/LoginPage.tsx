@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/Button';
 import Spinner from '../components/Spinner';
@@ -24,6 +23,11 @@ const UserIcon: React.FC<{className?: string}> = ({ className }) => (
 
 const LoginPage: React.FC = () => {
   const { login, demoLogin, isLoading, currentUser } = useAuth();
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   if (currentUser) {
       // Already handled by Navigate in App.tsx, but good for direct access scenario
