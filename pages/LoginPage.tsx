@@ -3,6 +3,35 @@ import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/Button';
 import Spinner from '../components/Spinner';
 
+// Style for the Google Sign-In button container to enhance neon aesthetics
+const googleButtonStyles = `
+  .google-btn-container {
+    transition: all 0.3s ease;
+    border-radius: 9999px;
+    position: relative;
+  }
+  .google-btn-container:hover {
+    box-shadow: 0 0 15px #06b6d4, 0 0 20px #06b6d4 inset !important;
+    transform: translateY(-2px);
+    animation: pulse-google-button 2s infinite;
+  }
+  .google-btn-container > div {
+    width: 100% !important; 
+  }
+  
+  @keyframes pulse-google-button {
+    0% {
+      box-shadow: 0 0 15px #06b6d4, 0 0 15px #06b6d4 inset;
+    }
+    50% {
+      box-shadow: 0 0 20px #06b6d4, 0 0 25px #06b6d4 inset;
+    }
+    100% {
+      box-shadow: 0 0 15px #06b6d4, 0 0 15px #06b6d4 inset;
+    }
+  }
+`;
+
 const GoogleIcon: React.FC = () => (
   <svg className="w-5 h-5" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
     <title>Google</title>
@@ -43,6 +72,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-250px)] py-12">
+      <style dangerouslySetInnerHTML={{__html: googleButtonStyles}} />
       <div className="bg-slate-800 p-8 sm:p-12 rounded-xl shadow-2xl w-full max-w-md border border-slate-700 neon-border-pink">
         <h2 className="text-3xl font-bold text-center mb-3">
           <span className="text-pink-500 neon-text-pink">Join</span>
@@ -54,7 +84,7 @@ const LoginPage: React.FC = () => {
         
         <div className="space-y-4">
             {/* Container for the Google Sign-In button */}
-            <div id="google-signin-button" className="w-full flex justify-center min-h-[42px]"></div>
+            <div id="google-signin-button" className="w-full flex justify-center min-h-[42px] google-btn-container"></div>
 
             <Button
                 onClick={demoLogin}
