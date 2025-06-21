@@ -15,11 +15,11 @@ const ChatBubbleLeftEllipsisIcon: React.FC<{className?: string}> = ({ className 
 
 const CommentsCard: React.FC<CommentsCardProps> = ({ artworkId, comments }) => {
   return (
-    <div className="bg-slate-900 rounded-lg overflow-hidden border border-slate-800 shadow-lg">
+    <div className="bg-slate-900 rounded-lg overflow-hidden border border-slate-800 shadow-lg card-glow-cyan">
       <div className="p-4">
-        <div className="flex items-center mb-3 text-slate-200">
+        <div className="flex items-center mb-3">
           <ChatBubbleLeftEllipsisIcon className="w-5 h-5 text-cyan-400 mr-2 shrink-0" />
-          <h3 className="text-lg font-medium">Comments</h3>
+          <h3 className="text-lg font-medium text-cyan-400 neon-text-cyan">Comments</h3>
           <span className="ml-2 text-sm text-slate-400">({comments.length})</span>
         </div>
         
@@ -27,11 +27,11 @@ const CommentsCard: React.FC<CommentsCardProps> = ({ artworkId, comments }) => {
           <>
             <div className="space-y-3 mb-3">
               {comments.slice(0, 2).map(comment => (
-                <div key={comment.id} className="flex items-start space-x-2">
+                <div key={comment.id} className="flex items-start space-x-2 p-2 rounded-lg hover:bg-slate-800/50 transition-colors">
                   <img 
                     src={comment.user.avatarUrl} 
                     alt={comment.user.name} 
-                    className="w-8 h-8 rounded-full border border-slate-600 shrink-0 mt-1"
+                    className="w-8 h-8 rounded-full border border-cyan-600 shrink-0 mt-1"
                   />
                   <div>
                     <div className="flex items-center space-x-1">
@@ -50,13 +50,13 @@ const CommentsCard: React.FC<CommentsCardProps> = ({ artworkId, comments }) => {
             </div>
             <Link 
               to={`/artwork/${artworkId}#comments`} 
-              className="inline-block text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+              className="inline-block text-sm text-cyan-400 hover:text-cyan-300 transition-colors hover:underline"
             >
               View all comments
             </Link>
           </>
         ) : (
-          <div className="text-slate-300">
+          <div className="text-slate-300 p-2 bg-slate-800/50 rounded-lg">
             <p>No comments yet. Be the first to share your thoughts!</p>
           </div>
         )}

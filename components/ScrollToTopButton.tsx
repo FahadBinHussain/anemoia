@@ -35,9 +35,6 @@ const ScrollToTopButton: React.FC = () => {
           className="fixed bottom-8 right-8 z-50 p-3 rounded-full bg-cyan-500 text-slate-900 shadow-lg hover:bg-cyan-400 transition-all duration-300 transform hover:scale-110 animate-pulse-glow"
           aria-label="Scroll to top"
           title="Scroll to top"
-          style={{
-            boxShadow: '0 0 15px #06b6d4, 0 0 30px #06b6d4',
-          }}
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 

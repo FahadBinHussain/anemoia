@@ -26,24 +26,48 @@
     ::-webkit-scrollbar-thumb:hover {
       background-color: #0891b2; /* cyan-600 */
     }
+    
+    /* Neon text effects */
     .neon-text-cyan {
       text-shadow: 0 0 5px #06b6d4, 0 0 10px #06b6d4, 0 0 15px #06b6d4;
     }
     .neon-text-pink {
       text-shadow: 0 0 5px #ec4899, 0 0 10px #ec4899, 0 0 15px #ec4899;
     }
+    
+    /* Neon border effects */
     .neon-border-cyan {
       box-shadow: 0 0 5px #06b6d4, 0 0 10px #06b6d4 inset;
     }
-     .neon-border-pink {
+    .neon-border-pink {
       box-shadow: 0 0 5px #ec4899, 0 0 10px #ec4899 inset;
+    }
+    
+    /* Card hover effects */
+    .card-glow-cyan {
+      transition: all 0.3s ease;
     }
     .card-glow-cyan:hover {
       box-shadow: 0 0 15px 3px rgba(6, 182, 212, 0.5), 0 0 5px 1px rgba(6, 182, 212, 0.7) inset;
+      transform: translateY(-2px);
     }
-     .card-glow-pink:hover {
+    .card-glow-pink {
+      transition: all 0.3s ease;
+    }
+    .card-glow-pink:hover {
       box-shadow: 0 0 15px 3px rgba(236, 72, 153, 0.5), 0 0 5px 1px rgba(236, 72, 153, 0.7) inset;
+      transform: translateY(-2px);
     }
+    
+    /* Button hover effects */
+    .btn-hover-glow-cyan:hover {
+      box-shadow: 0 0 10px #06b6d4;
+    }
+    .btn-hover-glow-pink:hover {
+      box-shadow: 0 0 10px #ec4899;
+    }
+    
+    /* Pulse animation for interactive elements */
     @keyframes pulse-glow {
       0% {
         box-shadow: 0 0 15px #06b6d4, 0 0 30px #06b6d4;
@@ -55,13 +79,35 @@
         box-shadow: 0 0 15px #06b6d4, 0 0 30px #06b6d4;
       }
     }
+    @keyframes pulse-glow-pink {
+      0% {
+        box-shadow: 0 0 15px #ec4899, 0 0 30px #ec4899;
+      }
+      50% {
+        box-shadow: 0 0 20px #ec4899, 0 0 40px #ec4899;
+      }
+      100% {
+        box-shadow: 0 0 15px #ec4899, 0 0 30px #ec4899;
+      }
+    }
     .animate-pulse-glow {
       animation: pulse-glow 2s infinite;
+    }
+    .animate-pulse-glow-pink {
+      animation: pulse-glow-pink 2s infinite;
+    }
+    
+    /* Tag hover effects */
+    .tag-hover:hover {
+      background-color: #06b6d4;
+      color: #0f172a;
+      border-color: #06b6d4;
+      box-shadow: 0 0 8px #06b6d4;
     }
     
     /* Artwork detail page specific styles */
     body.artwork-detail-page {
-      background-color: #000;
+      background-color: #0f172a;
     }
     
     body.artwork-detail-page #root > div > main {
@@ -71,11 +117,21 @@
     
     /* Header styling for artwork pages */
     body.artwork-detail-page header {
-      background-color: rgba(0, 0, 0, 0.8);
+      background-color: rgba(15, 23, 42, 0.8);
       backdrop-filter: blur(10px);
       position: fixed;
       width: 100%;
       z-index: 100;
+      border-bottom: 1px solid rgba(30, 41, 59, 0.8);
+    }
+    
+    /* Image hover effects */
+    .img-hover-glow {
+      transition: all 0.3s ease;
+    }
+    .img-hover-glow:hover {
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.6);
+      transform: scale(1.02);
     }
   </style>
 <script type="importmap">

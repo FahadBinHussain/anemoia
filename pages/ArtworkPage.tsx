@@ -140,29 +140,29 @@ const ArtworkPage: React.FC = () => {
   const isCurrentlySaved = isSaved(artwork.id);
 
   return (
-    <div className="min-h-screen bg-black w-full" style={{ paddingTop: `${headerHeight}px` }}>
+    <div className="min-h-screen bg-slate-950 w-full" style={{ paddingTop: `${headerHeight}px` }}>
       <div className="flex flex-col lg:flex-row min-h-screen">
         {/* Left column - Fixed artwork */}
-        <div className="lg:w-3/5 lg:fixed lg:top-0 lg:left-0 lg:pt-[64px] lg:h-screen flex items-center justify-center p-4 bg-black">
+        <div className="lg:w-3/5 lg:fixed lg:top-0 lg:left-0 lg:pt-[64px] lg:h-screen flex items-center justify-center p-4 bg-slate-950">
           <div className="max-w-full max-h-full">
             <img 
               src={artwork.imageUrl.replace('/600/400', '/1200/800')} 
               alt={artwork.title} 
-              className="max-h-[80vh] object-contain mx-auto"
+              className="max-h-[80vh] object-contain mx-auto border border-slate-800 shadow-lg shadow-cyan-500/20"
             />
           </div>
           
           {/* Caption below image on mobile only */}
           <div className="lg:hidden mt-4 text-center">
-            <p className="text-slate-400">{artwork.title}</p>
+            <p className="text-cyan-400 neon-text-cyan">{artwork.title}</p>
           </div>
         </div>
         
         {/* Right column - Content that flows with the page */}
-        <div className="lg:w-2/5 lg:ml-auto bg-[#1a1a1a] text-white relative min-h-screen">
+        <div className="lg:w-2/5 lg:ml-auto bg-slate-900 text-white relative min-h-screen border-l border-slate-800">
           {/* Back button - visible on mobile only */}
           <div className="lg:hidden absolute top-4 right-4 z-10">
-            <Link to="/" className="p-2 rounded-full bg-slate-800 hover:bg-slate-700 transition-colors">
+            <Link to="/" className="p-2 rounded-full bg-slate-800 hover:bg-cyan-500 hover:text-slate-900 transition-colors">
               <ArrowLeftIcon className="w-5 h-5" />
             </Link>
           </div>
@@ -170,25 +170,39 @@ const ArtworkPage: React.FC = () => {
           <div className="p-8">
             {/* Artist info header */}
             <div className="flex items-center mb-6">
-              <img 
-                src={artwork.artist.avatarUrl} 
-                alt={artwork.artist.name} 
-                className="w-12 h-12 rounded-full border-2 border-pink-500 mr-4"
-              />
+              <Link to={`/profile/${artwork.artist.id}`} className="shrink-0">
+                <img 
+                  src={artwork.artist.avatarUrl} 
+                  alt={artwork.artist.name} 
+                  className="w-12 h-12 rounded-full border-2 border-pink-500 mr-4 hover:opacity-80 transition-opacity"
+                />
+              </Link>
               <div>
-                <h2 className="text-xl font-bold">{artwork.artist.name}</h2>
-                <p className="text-slate-400">Aviation AI Artist, Aviation geek</p>
+                <Link to={`/profile/${artwork.artist.id}`} className="text-xl font-bold text-slate-200 hover:text-cyan-400 transition-colors">
+                  {artwork.artist.name}
+                </Link>
+                <p className="text-slate-400">Digital Artisan</p>
               </div>
               <div className="ml-auto">
                 <Button
                   onClick={handleFollowToggle}
                   variant={isCurrentlyFollowing ? "primary" : "outline"}
                   size="sm"
-                  className={`${isCurrentlyFollowing ? '' : 'border-white text-white hover:bg-white hover:text-black'}`}
+                  className={`${isCurrentlyFollowing ? '' : 'text-cyan-400 border-cyan-500 hover:bg-cyan-500 hover:text-slate-900'}`}
                 >
                   {isCurrentlyFollowing ? 'Following' : 'Follow'}
                 </Button>
               </div>
+            </div>
+            
+            {/* Artwork title and description */}
+            <div className="mb-8">
+              <h1 className="text-2xl font-bold mb-2">
+                <span className="text-cyan-400 neon-text-cyan">{artwork.title.split(' ')[0]}</span>
+                <span className="text-slate-100"> {artwork.title.substring(artwork.title.split(' ')[0].length)}</span>
+              </h1>
+              <p className="text-slate-300 mb-2">{artwork.description}</p>
+              <p className="text-slate-400 text-sm">Posted {new Date(artwork.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
             </div>
             
             {/* Action buttons */}
@@ -197,7 +211,7 @@ const ArtworkPage: React.FC = () => {
                 onClick={handleLikeToggle}
                 variant={isCurrentlyLiked ? "secondary" : "outline"}
                 size="lg"
-                className="flex-1 flex justify-center items-center"
+                className={`flex-1 flex justify-center items-center ${isCurrentlyLiked ? 'bg-pink-500 text-white' : 'text-pink-400 border-pink-500 hover:bg-pink-500 hover:text-slate-900'}`}
                 leftIcon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={isCurrentlyLiked ? "currentColor" : "none"} stroke="currentColor" className="w-6 h-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
@@ -211,7 +225,7 @@ const ArtworkPage: React.FC = () => {
                 onClick={handleSaveToggle}
                 variant={isCurrentlySaved ? "primary" : "outline"}
                 size="lg"
-                className="flex-1 flex justify-center items-center"
+                className={`flex-1 flex justify-center items-center ${isCurrentlySaved ? 'bg-cyan-500 text-white' : 'text-cyan-400 border-cyan-500 hover:bg-cyan-500 hover:text-slate-900'}`}
                 leftIcon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={isCurrentlySaved ? "currentColor" : "none"} stroke="currentColor" className="w-6 h-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
@@ -222,48 +236,41 @@ const ArtworkPage: React.FC = () => {
               </Button>
             </div>
             
-            {/* Artwork title and description */}
-            <div className="mb-8">
-              <h1 className="text-2xl font-bold mb-2">{artwork.title}</h1>
-              <p className="text-slate-300 mb-2">{artwork.description}</p>
-              <p className="text-slate-400 text-sm">Posted {new Date(artwork.createdAt).toLocaleDateString()}</p>
-            </div>
-            
             {/* Stats */}
-            <div className="flex space-x-8 mb-8 text-slate-300">
+            <div className="flex space-x-8 mb-8 text-slate-300 bg-slate-800/50 p-4 rounded-lg border border-slate-700">
               <div className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 mr-2 text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 mr-2 text-pink-500">
                   <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.218l-.022.012-.007.004-.004.001a.752.752 0 01-.704 0l-.004-.001z" />
                 </svg>
-                <span>{artwork.likes || 1}</span>
+                <span className="font-medium">{artwork.likes || 1}</span>
               </div>
               <div className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 mr-2 text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 mr-2 text-cyan-400">
                   <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
                   <path fillRule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 010-1.113zM17.25 12a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z" clipRule="evenodd" />
                 </svg>
-                <span>{artwork.views || 5}</span>
+                <span className="font-medium">{artwork.views || 5}</span>
               </div>
               <div className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2 text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2 text-cyan-400">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-3.86 8.25-8.625 8.25a9.75 9.75 0 01-4.372-.992L3 21l3.352-1.775A9.721 9.721 0 012.25 12c0-4.556 3.86-8.25 8.625-8.25S21 7.444 21 12z" />
                 </svg>
-                <span>{artworkComments.length || 0}</span>
+                <span className="font-medium">{artworkComments.length || 0}</span>
               </div>
             </div>
             
             {/* Comment section */}
-            <div className="mb-8">
-              <h3 className="text-lg font-bold mb-4">SIGN IN TO COMMENT!</h3>
-              <div className="bg-[#222] rounded-lg p-4 flex">
+            <div className="mb-8 bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+              <h3 className="text-lg font-bold mb-4 text-cyan-400">SIGN IN TO COMMENT!</h3>
+              <div className="bg-slate-800 rounded-lg p-4 flex border border-slate-700">
                 <input 
                   type="text" 
                   placeholder="Add a comment" 
-                  className="flex-grow bg-transparent border-none outline-none text-white"
+                  className="flex-grow bg-transparent border-none outline-none text-white focus:ring-1 focus:ring-cyan-500"
                   disabled={!currentUser}
                 />
                 <button 
-                  className="ml-2 bg-blue-500 text-white px-4 py-1 rounded-md"
+                  className="ml-2 bg-cyan-500 text-slate-900 px-4 py-1 rounded-md hover:bg-cyan-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={!currentUser}
                 >
                   &gt;
@@ -273,12 +280,13 @@ const ArtworkPage: React.FC = () => {
             
             {/* Tags */}
             {artwork.tags && artwork.tags.length > 0 && (
-              <div className="mb-8">
+              <div className="mb-8 bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                <h3 className="text-lg font-bold mb-4 text-pink-400">Tags</h3>
                 <div className="flex flex-wrap gap-2">
                   {artwork.tags.map(tag => (
                     <span 
                       key={tag} 
-                      className="px-3 py-1 text-sm bg-[#333] text-white rounded-full hover:bg-[#444] transition-colors cursor-pointer"
+                      className="px-3 py-1 text-sm bg-slate-700 text-cyan-300 rounded-full border border-slate-600 hover:bg-cyan-500 hover:text-slate-900 hover:border-cyan-500 transition-all cursor-pointer"
                     >
                       {tag}
                     </span>
@@ -289,14 +297,14 @@ const ArtworkPage: React.FC = () => {
             
             {/* More by artist */}
             {moreArtworks.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-lg font-bold mb-4">More by {artwork.artist.name}</h3>
+              <div className="mb-8 bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                <h3 className="text-lg font-bold mb-4 text-cyan-400">More by {artwork.artist.name}</h3>
                 <div className="grid grid-cols-3 gap-2">
                   {moreArtworks.slice(0, 6).map(art => (
                     <Link 
                       key={art.id} 
                       to={`/artwork/${art.id}`}
-                      className="block aspect-square rounded-md overflow-hidden"
+                      className="block aspect-square rounded-md overflow-hidden border border-slate-700 hover:border-cyan-500 transition-colors card-glow-cyan"
                     >
                       <img 
                         src={art.imageUrl} 
