@@ -26,12 +26,14 @@ const CloseIcon: React.FC<{className?: string}> = ({className}) => (
     </svg>
 );
 
+// This component will be rendered directly in the App.tsx layout without the footer
 const ArtworkPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [artwork, setArtwork] = useState<Artwork | null>(null);
   const [moreArtworks, setMoreArtworks] = useState<Artwork[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
   
   const { currentUser } = useAuth();
   const { followArtist, unfollowArtist, isFollowing } = useFollow();
@@ -42,6 +44,20 @@ const ArtworkPage: React.FC = () => {
   // Effect to scroll to top when component mounts or when the artwork ID changes
   useEffect(() => {
     window.scrollTo(0, 0);
+    
+    // Hide the footer when viewing artwork page
+    document.body.classList.add('artwork-detail-page');
+    
+    // Get header height to adjust layout
+    const header = document.querySelector('header');
+    if (header) {
+      setHeaderHeight(header.offsetHeight);
+    }
+    
+    return () => {
+      // Restore normal layout when leaving the page
+      document.body.classList.remove('artwork-detail-page');
+    };
   }, [id]);
 
   useEffect(() => {
@@ -95,7 +111,7 @@ const ArtworkPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
+      <div className="flex flex-col items-center justify-center min-h-screen">
         <Spinner size="xl" />
         <p className="mt-4 text-xl text-slate-300">Loading digital essence...</p>
       </div>
@@ -124,15 +140,15 @@ const ArtworkPage: React.FC = () => {
   const isCurrentlySaved = isSaved(artwork.id);
 
   return (
-    <div className="min-h-screen bg-black">
-      <div className="flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-black w-full" style={{ paddingTop: `${headerHeight}px` }}>
+      <div className="flex flex-col lg:flex-row min-h-screen">
         {/* Left column - Fixed artwork */}
-        <div className="lg:w-3/5 lg:fixed lg:top-0 lg:left-0 lg:h-screen flex items-center justify-center p-4">
+        <div className="lg:w-3/5 lg:fixed lg:top-0 lg:left-0 lg:pt-[64px] lg:h-screen flex items-center justify-center p-4 bg-black">
           <div className="max-w-full max-h-full">
             <img 
               src={artwork.imageUrl.replace('/600/400', '/1200/800')} 
               alt={artwork.title} 
-              className="max-h-[90vh] object-contain mx-auto"
+              className="max-h-[80vh] object-contain mx-auto"
             />
           </div>
           
@@ -143,11 +159,11 @@ const ArtworkPage: React.FC = () => {
         </div>
         
         {/* Right column - Content that flows with the page */}
-        <div className="lg:w-2/5 lg:ml-auto bg-[#1a1a1a] text-white relative">
-          {/* Close button - visible on mobile only */}
-          <div className="lg:hidden absolute top-4 right-4">
+        <div className="lg:w-2/5 lg:ml-auto bg-[#1a1a1a] text-white relative min-h-screen">
+          {/* Back button - visible on mobile only */}
+          <div className="lg:hidden absolute top-4 right-4 z-10">
             <Link to="/" className="p-2 rounded-full bg-slate-800 hover:bg-slate-700 transition-colors">
-              <CloseIcon className="w-5 h-5" />
+              <ArrowLeftIcon className="w-5 h-5" />
             </Link>
           </div>
           
