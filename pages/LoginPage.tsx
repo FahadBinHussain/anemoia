@@ -54,7 +54,7 @@ const LoginPage: React.FC = () => {
         
         <div className="space-y-4">
             {/* Container for the Google Sign-In button */}
-            <div id="google-signin-button" className="w-full flex justify-center"></div>
+            <div id="google-signin-button" className="w-full flex justify-center min-h-[42px]"></div>
 
             <Button
                 onClick={demoLogin}
