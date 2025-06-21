@@ -165,45 +165,58 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
 
-    let retryCount = 0;
-    const maxRetries = 30; // 3 seconds max
-    const retryDelay = 100;
+    // Load the Google Identity Services script if it's not already present
+    if (!document.querySelector('script[src="https://accounts.google.com/gsi/client"]')) {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
 
-    const waitForGsiAndButton = (cb: () => void) => {
-      if (
-        window.google &&
-        window.google.accounts &&
-        window.google.accounts.id &&
-        document.getElementById('google-signin-button')
-      ) {
-        cb();
-      } else if (retryCount < maxRetries) {
-        retryCount++;
-        setTimeout(() => waitForGsiAndButton(cb), retryDelay);
-      } else {
-        console.error('AuthContext: GSI script or button container not found after retries.');
-        setIsLoading(false);
-      }
-    };
-
-    waitForGsiAndButton(() => {
+    // Function to initialize Google Identity Services and render the button
+    const initializeGsi = () => {
       try {
         window.google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           callback: handleCredentialResponse,
         });
-        const buttonContainer = document.getElementById('google-signin-button');
-        window.google.accounts.id.renderButton(
-          buttonContainer,
-          { type: "standard", theme: "outline", size: "large", width: "360" }
-        );
-        setIsLoading(false);
-        console.log("AuthContext: Google Sign-In button rendered.");
+        
+        // Check if button container exists
+        const renderButton = () => {
+          const buttonContainer = document.getElementById('google-signin-button');
+          if (buttonContainer) {
+            window.google.accounts.id.renderButton(
+              buttonContainer,
+              { type: "standard", theme: "outline", size: "large", width: "360" }
+            );
+            setIsLoading(false);
+            console.log("AuthContext: Google Sign-In button rendered.");
+          } else {
+            // If button container doesn't exist yet, retry after a short delay
+            setTimeout(renderButton, 50);
+          }
+        };
+        
+        // Start trying to render the button
+        renderButton();
       } catch (error) {
         console.error("AuthContext: Error during GSI initialization or rendering:", error);
         setIsLoading(false);
       }
-    });
+    };
+
+    // Wait for the Google API to be available before initializing
+    const waitForGsiApi = () => {
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        initializeGsi();
+      } else {
+        setTimeout(waitForGsiApi, 50);
+      }
+    };
+
+    // Start waiting for the Google API to be available
+    waitForGsiApi();
 
     return () => {
       console.log("AuthContext: useEffect - CLEANUP.");
