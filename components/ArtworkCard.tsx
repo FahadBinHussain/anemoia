@@ -21,16 +21,30 @@ const HeartIcon: React.FC<{className?: string}> = ({ className }) => (
 );
 
 const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork, index }) => {
+  // Alternate between cyan and pink glow effects
   const glowClass = index % 2 === 0 ? 'card-glow-cyan' : 'card-glow-pink';
   
+  // Determine if we should show the title overlay
+  // For some artworks, especially those with text in the image, we might not want to show the title
   const showTitle = !artwork.title.includes('The Bell Jar');
+
+  // Determine aspect ratio based on the artwork
+  const getAspectRatioClass = () => {
+    // Special cases for specific artworks
+    if (artwork.title === 'The Bell Jar') return 'aspect-[3/4]';
+    if (artwork.title === 'Tactical Sidearm') return 'aspect-[4/3]';
+    if (artwork.title === 'Rock Formation PMG-3507') return 'aspect-[1/1]';
+    
+    // Default aspect ratio
+    return 'aspect-[4/3]';
+  };
   
   return (
     <Link 
       to={`/artwork/${artwork.id}`} 
       className={`group block bg-slate-800 rounded-lg overflow-hidden shadow-lg transition-all duration-300 ease-in-out hover:shadow-2xl transform hover:-translate-y-1 ${glowClass} border border-slate-700 hover:border-transparent h-full`}
     >
-      <div className="relative h-full">
+      <div className={`relative w-full h-full ${getAspectRatioClass()}`}>
         <img 
           src={artwork.imageUrl} 
           alt={artwork.title} 
@@ -38,6 +52,7 @@ const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork, index }) => {
           loading="lazy"
         />
         
+        {/* Overlay with gradient and minimal info */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
           {showTitle && (
             <div className="space-y-1">

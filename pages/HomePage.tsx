@@ -46,19 +46,9 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Hero section - simplified for more focus on artwork */}
-      <div className="text-center py-6 md:py-8">
-        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-2">
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500">Anemoia</span>
-        </h1>
-        <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-          Explore a universe of breathtaking digital art
-        </p>
-      </div>
-
-      {/* Search and filter controls - more compact */}
-      <div className="flex flex-col sm:flex-row gap-3 items-center mb-6">
+    <div className="space-y-6">
+      {/* Minimal header with search */}
+      <div className="flex flex-col sm:flex-row gap-3 items-center">
         <div className="relative flex-grow w-full sm:w-auto">
             <input 
                 type="text"
@@ -78,7 +68,7 @@ const HomePage: React.FC = () => {
         </Button>
       </div>
       
-      {/* Artwork grid - now with masonry layout */}
+      {/* Artwork grid with the exact layout from reference */}
       <ArtworkGrid artworks={artworks} isLoading={isLoading} />
     </div>
   );
