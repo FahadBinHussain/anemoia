@@ -44,6 +44,20 @@
      .card-glow-pink:hover {
       box-shadow: 0 0 15px 3px rgba(236, 72, 153, 0.5), 0 0 5px 1px rgba(236, 72, 153, 0.7) inset;
     }
+    @keyframes pulse-glow {
+      0% {
+        box-shadow: 0 0 15px #06b6d4, 0 0 30px #06b6d4;
+      }
+      50% {
+        box-shadow: 0 0 20px #06b6d4, 0 0 40px #06b6d4;
+      }
+      100% {
+        box-shadow: 0 0 15px #06b6d4, 0 0 30px #06b6d4;
+      }
+    }
+    .animate-pulse-glow {
+      animation: pulse-glow 2s infinite;
+    }
   </style>
 <script type="importmap">
 {

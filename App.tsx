@@ -9,6 +9,7 @@ import { useAuth } from './contexts/AuthContext';
 import UploadPage from './pages/UploadPage'; 
 import ProfilePage from './pages/ProfilePage'; // Changed
 import ScrollToTop from './components/ScrollToTop';
+import ScrollToTopButton from './components/ScrollToTopButton';
 
 const App: React.FC = () => {
   const { currentUser } = useAuth();
@@ -30,6 +31,7 @@ const App: React.FC = () => {
         </Routes>
       </main>
       <Footer />
+      <ScrollToTopButton />
     </div>
   );
 };
