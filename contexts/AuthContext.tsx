@@ -15,6 +15,7 @@ interface AuthContextType {
   login: () => Promise<void>;
   logout: () => void;
   demoLogin: () => void; // Added for demo purposes
+  triggerGoogleSignIn: () => void; // New function to trigger Google sign-in
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -281,8 +282,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log("AuthContext: demoLogin - Demo user set. currentUser:", DEMO_USER);
   }, []);
 
+  // New function to trigger Google sign-in
+  const triggerGoogleSignIn = useCallback(() => {
+    console.log("AuthContext: triggerGoogleSignIn - Attempting to trigger Google sign-in");
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+      window.google.accounts.id.prompt();
+      console.log("AuthContext: triggerGoogleSignIn - Prompted for Google sign-in");
+    } else {
+      console.error("AuthContext: triggerGoogleSignIn - Google Identity Services not available");
+      setIsLoading(false);
+    }
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ currentUser, isLoading, login, logout, demoLogin }}>
+    <AuthContext.Provider value={{ currentUser, isLoading, login, logout, demoLogin, triggerGoogleSignIn }}>
       {children}
     </AuthContext.Provider>
   );
