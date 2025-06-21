@@ -14,8 +14,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: () => Promise<void>;
   logout: () => void;
-  demoLogin: () => void; // Added for demo purposes
-  triggerGoogleSignIn: () => void; // New function to trigger Google sign-in
+  demoLogin: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -106,11 +105,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  // Placeholder for GSI credential response handling
+  // Global callback for GSI credential response handling
   const handleCredentialResponse = useCallback((response: any) => {
     console.log("AuthContext: handleCredentialResponse - START. Credential response received.", response);
     if (response.credential) {
       localStorage.setItem(LOCAL_STORAGE_KEY, response.credential); // Persist credential
+      setIsLoading(true); // Set loading state while verifying with backend
       
       // Send the credential to the backend
       fetch(`${API_URL}/auth/google`, {
@@ -158,10 +158,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  // Define a global window function for callbacks
   useEffect(() => {
-    console.log("AuthContext: useEffect - Initializing Google Identity Services (for rendered button).");
+    // Add a global callback that Google Sign-In can use
+    window.handleGoogleSignIn = handleCredentialResponse;
+    
+    return () => {
+      // Clean up when unmounted
+      delete window.handleGoogleSignIn;
+    };
+  }, [handleCredentialResponse]);
+
+  // Load Google Identity Services script globally
+  useEffect(() => {
+    console.log("AuthContext: useEffect - Loading Google Identity Services script globally");
     if (!GOOGLE_CLIENT_ID) {
-      console.error("AuthContext: useEffect - GOOGLE_CLIENT_ID is not set. Skipping GSI initialization and button rendering.");
+      console.error("AuthContext: useEffect - GOOGLE_CLIENT_ID is not set. Google Sign-In will not work.");
       setIsLoading(false);
       return;
     }
@@ -175,80 +187,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       document.head.appendChild(script);
     }
 
-    // Function to initialize Google Identity Services and render the button
-    const initializeGsi = () => {
-      try {
-        window.google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
-          callback: handleCredentialResponse,
-        });
-        
-        // Check if button container exists
-        const renderButton = () => {
-          const buttonContainer = document.getElementById('google-signin-button');
-          if (buttonContainer) {
-            window.google.accounts.id.renderButton(
-              buttonContainer,
-              { 
-                type: "standard", 
-                theme: "outline", 
-                size: "large", 
-                width: "360",
-                text: "signin_with",
-                shape: "pill",
-                logo_alignment: "left",
-                // Add custom styling that better matches our neon aesthetic
-                style: {
-                  border: "2px solid #06b6d4",
-                  borderRadius: "9999px", // for a pill shape
-                  backgroundColor: "rgba(6, 182, 212, 0.1)",
-                  color: "white",
-                  boxShadow: "0 0 8px #06b6d4, 0 0 10px #06b6d4 inset",
-                  fontFamily: "'Inter', sans-serif",
-                  textShadow: "0 0 5px #06b6d4" // neon text glow
-                }
-              }
-            );
-            setIsLoading(false);
-            console.log("AuthContext: Google Sign-In button rendered.");
-          } else {
-            // If button container doesn't exist yet, retry after a short delay
-            setTimeout(renderButton, 50);
-          }
-        };
-        
-        // Start trying to render the button
-        renderButton();
-      } catch (error) {
-        console.error("AuthContext: Error during GSI initialization or rendering:", error);
-        setIsLoading(false);
-      }
-    };
-
-    // Wait for the Google API to be available before initializing
-    const waitForGsiApi = () => {
-      if (window.google && window.google.accounts && window.google.accounts.id) {
-        initializeGsi();
-      } else {
-        setTimeout(waitForGsiApi, 50);
-      }
-    };
-
-    // Start waiting for the Google API to be available
-    waitForGsiApi();
-
     return () => {
-      console.log("AuthContext: useEffect - CLEANUP.");
+      console.log("AuthContext: useEffect - CLEANUP Google Identity Services.");
     };
-  }, [handleCredentialResponse]);
-
-  // The 'login' function is now a placeholder as the rendered button handles the click.
-  // We keep it to satisfy the AuthContextType interface.
-  const login = useCallback(async () => {
-      console.log("AuthContext: login - Called (via button click). GSI flow handled by rendered button.");
-      // isLoading will be managed by the GSI flow and handleCredentialResponse
   }, []);
 
+  // The 'login' function is now a placeholder as each button initialization handles sign-in
+  const login = useCallback(async () => {
+      console.log("AuthContext: login - Called. Prompting Google Sign-In.");
+      // Try to trigger Google One-Tap prompt if available
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        window.google.accounts.id.prompt();
+      }
+  }, []);
 
   const logout = useCallback(() => {
     console.log("AuthContext: logout - START (GSI).");
@@ -282,20 +233,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log("AuthContext: demoLogin - Demo user set. currentUser:", DEMO_USER);
   }, []);
 
-  // New function to trigger Google sign-in
-  const triggerGoogleSignIn = useCallback(() => {
-    console.log("AuthContext: triggerGoogleSignIn - Attempting to trigger Google sign-in");
-    if (window.google && window.google.accounts && window.google.accounts.id) {
-      window.google.accounts.id.prompt();
-      console.log("AuthContext: triggerGoogleSignIn - Prompted for Google sign-in");
-    } else {
-      console.error("AuthContext: triggerGoogleSignIn - Google Identity Services not available");
-      setIsLoading(false);
-    }
-  }, []);
-
   return (
-    <AuthContext.Provider value={{ currentUser, isLoading, login, logout, demoLogin, triggerGoogleSignIn }}>
+    <AuthContext.Provider value={{ currentUser, isLoading, login, logout, demoLogin }}>
       {children}
     </AuthContext.Provider>
   );
@@ -308,3 +247,10 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
+// Add to Window interface
+declare global {
+  interface Window {
+    handleGoogleSignIn?: (response: any) => void;
+  }
+}

@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/Button';
 import Spinner from '../components/Spinner';
+import { GOOGLE_CLIENT_ID } from '../config';
 
 // Style for the Google Sign-In button container to enhance neon aesthetics
 const googleButtonStyles = `
@@ -32,8 +33,15 @@ const googleButtonStyles = `
   }
 `;
 
+const UserIcon: React.FC<{className?: string}> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-5 h-5"}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+  </svg>
+);
+
+// Google Icon component
 const GoogleIcon: React.FC = () => (
-  <svg className="w-5 h-5" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <svg className="w-5 h-5 mr-2" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
     <title>Google</title>
     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -43,32 +51,90 @@ const GoogleIcon: React.FC = () => (
   </svg>
 );
 
-const UserIcon: React.FC<{className?: string}> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-5 h-5"}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-  </svg>
-);
-
 
 const LoginPage: React.FC = () => {
-  const { login, demoLogin, isLoading, currentUser } = useAuth();
+  const { demoLogin, isLoading, currentUser } = useAuth();
+  const googleSignInButtonRef = useRef<HTMLDivElement>(null);
 
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, []);
+  
+  // Initialize Google Sign-In button
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) {
+      console.error("LoginPage: GOOGLE_CLIENT_ID not set. Cannot render Google Sign-In button.");
+      return;
+    }
+    
+    const initializeGoogleSignIn = () => {
+      if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+        setTimeout(initializeGoogleSignIn, 100);
+        return;
+      }
+      
+      try {
+        if (googleSignInButtonRef.current) {
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: (response: any) => {
+              console.log("LoginPage: Google sign-in response received, forwarding to global handler");
+              if (window.handleGoogleSignIn) {
+                window.handleGoogleSignIn(response);
+              }
+            },
+          });
+          
+          window.google.accounts.id.renderButton(
+            googleSignInButtonRef.current,
+            { 
+              type: "standard", 
+              theme: "outline", 
+              size: "large",
+              width: googleSignInButtonRef.current.clientWidth,
+              text: "signin_with",
+              shape: "pill",
+              logo_alignment: "left",
+              style: {
+                border: "2px solid #06b6d4",
+                borderRadius: "9999px",
+                backgroundColor: "rgba(6, 182, 212, 0.1)",
+                color: "white",
+                boxShadow: "0 0 8px #06b6d4, 0 0 10px #06b6d4 inset",
+                fontFamily: "'Inter', sans-serif",
+                textShadow: "0 0 5px #06b6d4"
+              }
+            }
+          );
+          console.log("LoginPage: Google Sign-In button rendered");
+        }
+      } catch (error) {
+        console.error("LoginPage: Error initializing Google Sign-In:", error);
+      }
+    };
+    
+    // Check if script is already loaded
+    if (document.querySelector('script[src="https://accounts.google.com/gsi/client"]')) {
+      initializeGoogleSignIn();
+    } else {
+      // Wait for the script to be loaded by AuthContext
+      const checkForScript = setInterval(() => {
+        if (document.querySelector('script[src="https://accounts.google.com/gsi/client"]')) {
+          clearInterval(checkForScript);
+          initializeGoogleSignIn();
+        }
+      }, 100);
+      
+      // Cleanup interval
+      return () => clearInterval(checkForScript);
+    }
   }, []);
 
   if (currentUser) {
       // Already handled by Navigate in App.tsx, but good for direct access scenario
       return <p className="text-center text-slate-300">Redirecting...</p>;
   }
-
-  const googleButtonDisabled = isLoading;
-  let googleButtonText = 'Sign In with Google';
-  if (isLoading) {
-    googleButtonText = 'Signing In...';
-  }
-
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-250px)] py-12">
@@ -83,8 +149,20 @@ const LoginPage: React.FC = () => {
         </p>
         
         <div className="space-y-4">
-            {/* Container for the Google Sign-In button */}
-            <div id="google-signin-button" className="w-full flex justify-center min-h-[42px] google-btn-container"></div>
+            {/* Google Sign-In button container */}
+            <div className="w-full">
+              {isLoading ? (
+                <div className="google-btn-container flex items-center justify-center p-3 h-[44px] w-full">
+                  <Spinner size="sm" className="mr-2" />
+                  <span className="text-white">Signing in...</span>
+                </div>
+              ) : (
+                <div 
+                  ref={googleSignInButtonRef}
+                  className="google-btn-container w-full h-[44px] flex justify-center items-center"
+                />
+              )}
+            </div>
 
             <Button
                 onClick={demoLogin}
@@ -93,15 +171,11 @@ const LoginPage: React.FC = () => {
                 className="w-full text-slate-200 border-cyan-600 hover:bg-cyan-700/50 hover:text-cyan-300 focus:ring-cyan-500 text-cyan-400"
                 leftIcon={<UserIcon className="text-cyan-400"/>}
                 aria-label="Sign in as Demo User"
-                // Demo login is instant, so doesn't need its own loading state usually
-                // disabled={isLoading} // Optionally disable if main isLoading is true
+                disabled={isLoading}
             >
                 Sign In as Demo User
             </Button>
         </div>
-
-        {isLoading && <p className="text-xs text-slate-400 mt-4 text-center">Attempting Google Sign-In...</p>}
-
 
         <p className="text-xs text-slate-500 mt-8 text-center">
           By signing in, you agree to our <a href="#" className="text-cyan-400 hover:underline">Terms of Service</a> and <a href="#" className="text-cyan-400 hover:underline">Privacy Policy</a> (conceptual).
