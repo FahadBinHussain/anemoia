@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
@@ -13,12 +13,19 @@ import ScrollToTopButton from './components/ScrollToTopButton';
 
 const App: React.FC = () => {
   const { currentUser } = useAuth();
+  const location = useLocation();
+  
+  // Check if we're on the artwork detail page
+  const isArtworkPage = location.pathname.startsWith('/artwork/');
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-950">
       <ScrollToTop />
+      
+      {/* Show header on all pages */}
       <Header />
-      <main className="flex-grow container mx-auto px-2 py-4">
+      
+      <main className={`flex-grow ${isArtworkPage ? '' : 'container mx-auto px-2 py-4'}`}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/artwork/:id" element={<ArtworkPage />} />
@@ -30,8 +37,12 @@ const App: React.FC = () => {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
-      <Footer />
-      <ScrollToTopButton />
+      
+      {/* Only show footer on non-artwork pages */}
+      {!isArtworkPage && <Footer />}
+      
+      {/* Only show scroll-to-top button on non-artwork pages */}
+      {!isArtworkPage && <ScrollToTopButton />}
     </div>
   );
 };
