@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Artwork } from '../types';
@@ -21,49 +20,32 @@ const HeartIcon: React.FC<{className?: string}> = ({ className }) => (
   </svg>
 );
 
-
 const ArtworkCard: React.FC<ArtworkCardProps> = ({ artwork, index }) => {
   const glowClass = index % 2 === 0 ? 'card-glow-cyan' : 'card-glow-pink';
-
+  
+  const showTitle = !artwork.title.includes('The Bell Jar');
+  
   return (
-    <Link to={`/artwork/${artwork.id}`} className={`group block bg-slate-800 rounded-lg overflow-hidden shadow-lg transition-all duration-300 ease-in-out hover:shadow-2xl transform hover:-translate-y-1 ${glowClass} border border-slate-700 hover:border-transparent`}>
-      <div className="relative aspect-[4/3] overflow-hidden">
+    <Link 
+      to={`/artwork/${artwork.id}`} 
+      className={`group block bg-slate-800 rounded-lg overflow-hidden shadow-lg transition-all duration-300 ease-in-out hover:shadow-2xl transform hover:-translate-y-1 ${glowClass} border border-slate-700 hover:border-transparent h-full`}
+    >
+      <div className="relative h-full">
         <img 
           src={artwork.imageUrl} 
           alt={artwork.title} 
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-           <h3 className="text-lg font-semibold text-white drop-shadow-md">{artwork.title}</h3>
-        </div>
-      </div>
-      <div className="p-4">
-        <div className="flex items-center space-x-2 mb-2">
-          <Link to={`/profile/${artwork.artist.id}`} onClick={(e) => e.stopPropagation()} className="flex items-center space-x-2 group/artist">
-            <img 
-              src={artwork.artist.avatarUrl} 
-              alt={artwork.artist.name} 
-              className="w-8 h-8 rounded-full border-2 border-pink-500/70 group-hover/artist:border-pink-500 transition-colors"
-            />
-            <span className="text-sm text-slate-300 group-hover/artist:text-cyan-400 transition-colors">{artwork.artist.name}</span>
-          </Link>
-        </div>
-        <div className="flex items-center justify-between text-xs text-slate-400 mt-1">
-          {artwork.views && (
-            <div className="flex items-center space-x-1">
-              <EyeIcon className="w-4 h-4 text-cyan-500/70 group-hover:text-cyan-400 transition-colors" />
-              <span>{artwork.views.toLocaleString()}</span>
-            </div>
-          )}
-          {artwork.likes && (
-            <div className="flex items-center space-x-1">
-              <HeartIcon className="w-4 h-4 text-pink-500/70 group-hover:text-pink-500 transition-colors" />
-              <span>{artwork.likes.toLocaleString()}</span>
+        
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
+          {showTitle && (
+            <div className="space-y-1">
+              <h3 className="text-base font-medium text-white drop-shadow-md line-clamp-1">{artwork.title}</h3>
+              <p className="text-xs text-slate-300">{artwork.artist.name}</p>
             </div>
           )}
         </div>
-
       </div>
     </Link>
   );
