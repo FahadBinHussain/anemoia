@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ArtworkDetail from '../components/ArtworkDetail';
+import ArtistMoreWorks from '../components/ArtistMoreWorks';
 import Spinner from '../components/Spinner';
 import { MOCK_ARTWORKS } from '../constants';
 import { Artwork } from '../types';
@@ -16,6 +17,7 @@ const ArrowLeftIcon: React.FC<{className?: string}> = ({className}) => (
 const ArtworkPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [artwork, setArtwork] = useState<Artwork | null>(null);
+  const [moreArtworks, setMoreArtworks] = useState<Artwork[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,6 +36,13 @@ const ArtworkPage: React.FC = () => {
       const foundArtwork = MOCK_ARTWORKS.find(art => art.id === id); // Replace with API response
       if (foundArtwork) {
         setArtwork(foundArtwork);
+        
+        // Find more artworks by the same artist
+        const artistWorks = MOCK_ARTWORKS.filter(
+          art => art.artist.id === foundArtwork.artist.id && art.id !== id
+        ).slice(0, 9); // Limit to 9 artworks
+        
+        setMoreArtworks(artistWorks);
       } else {
         setError('Artwork not found. It might have slipped into another dimension.');
       }
@@ -67,12 +76,23 @@ const ArtworkPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8">
-        <Link to="/" className="inline-flex items-center text-cyan-400 hover:text-cyan-300 transition-colors group">
-            <ArrowLeftIcon className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
-            Back to Explore
-        </Link>
-        <ArtworkDetail artwork={artwork} />
+    <div>
+      <Link to="/" className="inline-flex items-center text-cyan-400 hover:text-cyan-300 transition-colors group mb-6">
+          <ArrowLeftIcon className="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" />
+          Back to Explore
+      </Link>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3">
+          <ArtworkDetail artwork={artwork} />
+        </div>
+        
+        <div className="lg:col-span-1 space-y-6">
+          {moreArtworks.length > 0 && (
+            <ArtistMoreWorks artist={artwork.artist} artworks={moreArtworks} />
+          )}
+        </div>
+      </div>
     </div>
   );
 };
