@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Spinner from './Spinner';
+import { GOOGLE_CLIENT_ID } from '../config';
 
 type AuthModalProps = {
   isOpen: boolean;
@@ -86,7 +87,9 @@ const modalStyles = `
 `;
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
-  const { isLoading, triggerGoogleSignIn } = useAuth();
+  const { isLoading, currentUser } = useAuth();
+  const googleSignInButtonRef = useRef<HTMLDivElement>(null);
+  const scriptLoadedRef = useRef(false);
 
   // Handle ESC key to close modal
   useEffect(() => {
@@ -103,22 +106,88 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     };
   }, [isOpen, onClose]);
 
-  // Only load the Google Identity Services script when the modal is open
+  // Close modal if user is logged in
   useEffect(() => {
-    if (isOpen && !document.querySelector('script[src="https://accounts.google.com/gsi/client"]')) {
+    if (currentUser && isOpen) {
+      onClose();
+    }
+  }, [currentUser, isOpen, onClose]);
+
+  // Initialize Google Sign-In when the modal is open
+  useEffect(() => {
+    if (!isOpen || !GOOGLE_CLIENT_ID) return;
+    
+    const loadGoogleScript = () => {
+      if (document.querySelector('script[src="https://accounts.google.com/gsi/client"]')) {
+        scriptLoadedRef.current = true;
+        initializeGoogleSignIn();
+        return;
+      }
+      
       const script = document.createElement('script');
       script.src = 'https://accounts.google.com/gsi/client';
       script.async = true;
       script.defer = true;
+      script.onload = () => {
+        scriptLoadedRef.current = true;
+        initializeGoogleSignIn();
+      };
       document.head.appendChild(script);
-    }
+    };
+    
+    const initializeGoogleSignIn = () => {
+      if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+        console.error("Google Identity Services not available yet");
+        setTimeout(initializeGoogleSignIn, 100);
+        return;
+      }
+      
+      try {
+        if (googleSignInButtonRef.current) {
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: (response: any) => {
+              console.log("Modal: Google sign-in response received, forwarding to global handler");
+              if (window.handleGoogleSignIn) {
+                window.handleGoogleSignIn(response);
+              }
+            },
+          });
+          
+          window.google.accounts.id.renderButton(
+            googleSignInButtonRef.current,
+            { 
+              type: "standard", 
+              theme: "outline", 
+              size: "large",
+              width: googleSignInButtonRef.current.clientWidth,
+              text: "signin_with",
+              shape: "pill",
+              logo_alignment: "left",
+              style: {
+                border: "2px solid #06b6d4",
+                borderRadius: "9999px",
+                backgroundColor: "rgba(6, 182, 212, 0.1)",
+                color: "white",
+                boxShadow: "0 0 8px #06b6d4, 0 0 10px #06b6d4 inset",
+                fontFamily: "'Inter', sans-serif",
+                textShadow: "0 0 5px #06b6d4"
+              }
+            }
+          );
+          console.log("Google Sign-In button rendered in modal");
+        } else {
+          console.error("Google sign-in button container not found");
+        }
+      } catch (error) {
+        console.error("Error initializing Google Sign-In:", error);
+      }
+    };
+    
+    loadGoogleScript();
   }, [isOpen]);
 
   if (!isOpen) return null;
-
-  const handleSignInWithGoogle = () => {
-    triggerGoogleSignIn();
-  };
 
   return (
     <>
@@ -159,25 +228,20 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </p>
             
             <div className="w-full">
-              {/* Custom Google Sign-In Button */}
-              <div className="mb-6">
-                <button 
-                  className="google-btn"
-                  onClick={handleSignInWithGoogle}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <div className="flex items-center justify-center">
-                      <Spinner size="sm" className="mr-2" />
-                      <span>Signing in...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center">
-                      <GoogleIcon />
-                      <span>Sign in with Google</span>
-                    </div>
-                  )}
-                </button>
+              {/* Google Sign-In Button Container */}
+              <div className="mb-6 w-full">
+                {isLoading ? (
+                  <div className="flex items-center justify-center google-btn">
+                    <Spinner size="sm" className="mr-2" />
+                    <span>Loading sign-in...</span>
+                  </div>
+                ) : (
+                  <div 
+                    id="google-signin-button-modal" 
+                    ref={googleSignInButtonRef} 
+                    className="w-full h-[44px] flex justify-center items-center"
+                  />
+                )}
               </div>
               
               <p className="text-xs text-slate-500 text-center">
