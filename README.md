@@ -1,5 +1,9 @@
 # Anemoia - Digital Art Platform
 
+<img src="https://wakapi-qt1b.onrender.com/api/badge/fahad/interval:any/project:anemoia" 
+     alt="Wakapi Time Tracking" 
+     title="Spent more than that amount of time spent on this project">
+
 This project is a modern digital art platform with Google Authentication integration.
 
 ## Features
