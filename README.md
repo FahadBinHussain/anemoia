@@ -1,5 +1,10 @@
 # Anemoia - Digital Art Platform
 
+## Project Status
+
+This project has been sunset and merged into [ImgVault](https://github.com/FahadBinHussain/imgvault).
+This repository is no longer actively maintained.
+
 <img src="https://wakapi-qt1b.onrender.com/api/badge/fahad/interval:any/project:anemoia" 
      alt="Wakapi Time Tracking" 
      title="Spent more than that amount of time spent on this project">
