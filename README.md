@@ -51,3 +51,9 @@ The app uses Google Authentication implemented as a modal dialog:
 - React Router for navigation
 - Context API for state management
 - Google Identity Services for authentication
+
+## Contributors
+
+<a href="https://github.com/FahadBinHussain/anemoia/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=FahadBinHussain/anemoia" alt="Contributors" />
+</a>
